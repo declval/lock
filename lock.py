@@ -1,3 +1,4 @@
+import argparse
 import getpass
 import hashlib
 import json
@@ -8,7 +9,6 @@ import nacl.exceptions
 import nacl.secret
 
 PROGRAM_NAME = 'lock'
-ARGC = len(sys.argv)
 DATABASE_PATH = os.path.join(os.path.expanduser('~'), f'.{PROGRAM_NAME}')
 
 
@@ -113,36 +113,40 @@ class PasswordManager:
                 pass
 
 
-def usage() -> None:
-    print('Usage:',
-         f'    {PROGRAM_NAME} create <entry>',
-         f'    {PROGRAM_NAME} read [entry]',
-         f'    {PROGRAM_NAME} update <entry>',
-         f'    {PROGRAM_NAME} delete <entry>', file=sys.stderr, sep='\n')
-
-
 def main() -> None:
-    if ARGC == 1:
-        usage()
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description='lock is a very simple password manager written in Python.')
+
+    subparsers = parser.add_subparsers(dest='subcommand', title='subcommands')
+
+    parser_create = subparsers.add_parser('create')
+    parser_create.add_argument('entry')
+
+    parser_read = subparsers.add_parser('read')
+    parser_read.add_argument('entry', nargs='?')
+
+    parser_update = subparsers.add_parser('update')
+    parser_update.add_argument('entry')
+
+    parser_delete = subparsers.add_parser('delete')
+    parser_delete.add_argument('entry')
+
+    args = parser.parse_args()
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(0)
 
     pm = PasswordManager(DATABASE_PATH)
 
-    match sys.argv[1]:
-        case 'create' if ARGC == 3:
-            pm.create(sys.argv[2])
-        case 'read' if ARGC == 2 or ARGC == 3:
-            if ARGC == 2:
-                pm.read()
-            else:
-                pm.read(sys.argv[2])
-        case 'update' if ARGC == 3:
-            pm.update(sys.argv[2])
-        case 'delete' if ARGC == 3:
-            pm.delete(sys.argv[2])
-        case _:
-            usage()
-            sys.exit(1)
+    match args.subcommand:
+        case 'create':
+            pm.create(args.entry)
+        case 'read':
+            pm.read(args.entry)
+        case 'update':
+            pm.update(args.entry)
+        case 'delete':
+            pm.delete(args.entry)
 
 
 if __name__ == '__main__':
