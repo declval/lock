@@ -180,6 +180,7 @@ class CentralWidget(QtWidgets.QWidget):
 
 
 class PasswordWindow(QtWidgets.QWidget):
+
     def __init__(self) -> None:
         super().__init__()
         layout = QtWidgets.QHBoxLayout()
