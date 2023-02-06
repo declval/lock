@@ -210,7 +210,7 @@ class CentralWidget(QtWidgets.QWidget):
     @QtCore.Slot()
     def delete(self, group_box: QtWidgets.QGroupBox) -> None:
         self.pm.delete(group_box.title(), interactive=False)
-        group_box.setParent(None)
+        group_box.hide()
 
 
 class PasswordWindow(QtWidgets.QWidget):
