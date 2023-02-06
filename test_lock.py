@@ -22,7 +22,7 @@ class TestCreate(unittest.TestCase):
 
     def test_create_existing(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(lock.EntryExistsError):
             self.pm.create('Google', {'Username': 'Alice', 'Password': '5678'})
         with open(self.database_path, 'rb') as file:
             encrypted = file.read()
@@ -60,7 +60,7 @@ class TestRead(unittest.TestCase):
 
     def test_read_nonexistent(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(lock.EntryDoesNotExistError):
             self.pm.read('Microsoft')
 
     def tearDown(self):
@@ -84,7 +84,7 @@ class TestUpdate(unittest.TestCase):
         self.assertEqual(got, expected)
 
     def test_update_nonexistent(self):
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(lock.EntryDoesNotExistError):
             self.pm.update('Google', {'Username': 'Alice', 'Password': '1234'})
 
     def tearDown(self):
@@ -108,7 +108,7 @@ class TestDelete(unittest.TestCase):
         self.assertEqual(got, expected)
 
     def test_delete_nonexistent(self):
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(lock.EntryDoesNotExistError):
             self.pm.delete('Google')
 
     def tearDown(self):

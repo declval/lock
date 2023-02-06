@@ -15,6 +15,14 @@ WINDOW_WIDTH = 400
 WINDOW_HEIGHT = 0
 
 
+class EntryDoesNotExistError(Exception):
+    pass
+
+
+class EntryExistsError(Exception):
+    pass
+
+
 class PasswordManager:
 
     def __init__(self, database_path: str, gui: bool, password: str | None = None) -> None:
@@ -56,8 +64,7 @@ class PasswordManager:
 
     def create(self, entry_key: str, entry_value: dict[str, str] | None = None) -> None:
         if self.contents.get(entry_key) is not None:
-            print(f'Entry {entry_key} already exists in the database', file=sys.stderr)
-            sys.exit(1)
+            raise EntryExistsError(entry_key)
         if entry_value is None:
             entry_value = self.read_entry_value()
         self.contents[entry_key] = entry_value
@@ -76,8 +83,7 @@ class PasswordManager:
             return self.contents
         else:
             if self.contents.get(entry_key) is None:
-                print(f'Entry {entry_key} does not exist in the database', file=sys.stderr)
-                sys.exit(1)
+                raise EntryDoesNotExistError(entry_key)
             if not self.gui:
                 print(f'{entry_key}:')
                 for name, definition in self.contents[entry_key].items():
@@ -86,8 +92,7 @@ class PasswordManager:
 
     def update(self, entry_key: str, entry_value: dict[str, str] | None = None) -> None:
         if self.contents.get(entry_key) is None:
-            print(f'Entry {entry_key} does not exist in the database', file=sys.stderr)
-            sys.exit(1)
+            raise EntryDoesNotExistError(entry_key)
         if entry_value is None:
             entry_value = self.read_entry_value()
         self.contents[entry_key] = entry_value
@@ -98,8 +103,7 @@ class PasswordManager:
 
     def delete(self, entry_key: str, interactive: bool = True) -> None:
         if self.contents.get(entry_key) is None:
-            print(f'Entry {entry_key} does not exist in the database', file=sys.stderr)
-            sys.exit(1)
+            raise EntryDoesNotExistError(entry_key)
         if interactive:
             reply = input(f'Are you sure you want to delete an entry {entry_key}? ')
         else:
@@ -250,13 +254,29 @@ def main() -> None:
 
     match args.subcommand:
         case 'create':
-            pm.create(args.entry)
+            try:
+                pm.create(args.entry)
+            except EntryExistsError as e:
+                print(f'Entry {e} already exists in the database', file=sys.stderr)
+                sys.exit(1)
         case 'read':
-            pm.read(args.entry)
+            try:
+                pm.read(args.entry)
+            except EntryDoesNotExistError as e:
+                print(f'Entry {e} does not exist in the database', file=sys.stderr)
+                sys.exit(1)
         case 'update':
-            pm.update(args.entry)
+            try:
+                pm.update(args.entry)
+            except EntryDoesNotExistError as e:
+                print(f'Entry {e} does not exist in the database', file=sys.stderr)
+                sys.exit(1)
         case 'delete':
-            pm.delete(args.entry)
+            try:
+                pm.delete(args.entry)
+            except EntryDoesNotExistError as e:
+                print(f'Entry {e} does not exist in the database', file=sys.stderr)
+                sys.exit(1)
 
 
 if __name__ == '__main__':
