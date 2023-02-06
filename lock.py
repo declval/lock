@@ -317,6 +317,8 @@ def main() -> None:
             except EntryDoesNotExistError as e:
                 print(f'Entry {e} does not exist in the database', file=sys.stderr)
                 sys.exit(1)
+        case _:
+            pass
 
 
 if __name__ == '__main__':
