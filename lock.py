@@ -4,6 +4,7 @@ import hashlib
 import json
 import os.path
 import sys
+import typing
 
 from PySide6 import QtCore, QtWidgets
 import nacl.exceptions
@@ -143,12 +144,12 @@ class CentralWidget(QtWidgets.QWidget):
                     buttons = QtWidgets.QHBoxLayout()
                     buttons.addStretch()
                     copy = QtWidgets.QPushButton('Copy')
-                    def wrapper_copy_password_to_clipboard(password: QtWidgets.QLineEdit) -> None:
+                    def wrapper_copy_password_to_clipboard(password: QtWidgets.QLineEdit) -> typing.Callable[[], None]:
                         return lambda: self.copy_password_to_clipboard(password)
                     copy.clicked.connect(wrapper_copy_password_to_clipboard(description))
                     buttons.addWidget(copy)
                     show = QtWidgets.QPushButton('Show')
-                    def wrapper_show_hide_password(password: QtWidgets.QLineEdit) -> None:
+                    def wrapper_show_hide_password(password: QtWidgets.QLineEdit) -> typing.Callable[[], None]:
                         return lambda: self.show_hide_password(password)
                     show.clicked.connect(wrapper_show_hide_password(description))
                     buttons.addWidget(show)
@@ -159,17 +160,17 @@ class CentralWidget(QtWidgets.QWidget):
                     entries.addLayout(buttons)
             entries_and_buttons.addLayout(entries)
             add = QtWidgets.QPushButton('Add')
-            def wrapper_add(entries: QtWidgets.QVBoxLayout) -> None:
+            def wrapper_add(entries: QtWidgets.QVBoxLayout) -> typing.Callable[[], None]:
                 return lambda: self.add(entries)
             add.clicked.connect(wrapper_add(entries))
             entries_and_buttons.addWidget(add, 0, QtCore.Qt.AlignmentFlag.AlignLeft)
             save = QtWidgets.QPushButton('Save')
-            def wrapper_save(group_box: QtWidgets.QGroupBox) -> None:
+            def wrapper_save(group_box: QtWidgets.QGroupBox) -> typing.Callable[[], None]:
                 return lambda: self.save(group_box)
             save.clicked.connect(wrapper_save(group_box))
             entries_and_buttons.addWidget(save)
             delete = QtWidgets.QPushButton('Delete')
-            def wrapper_delete(group_box: QtWidgets.QGroupBox) -> None:
+            def wrapper_delete(group_box: QtWidgets.QGroupBox) -> typing.Callable[[], None]:
                 return lambda: self.delete(group_box)
             delete.clicked.connect(wrapper_delete(group_box))
             entries_and_buttons.addWidget(delete)
