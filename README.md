@@ -41,7 +41,7 @@ everything stored in the database.
    pip install -r requirements.txt
    ```
 
-5. Run the program without arguments to see usage information:
+5. Run the program without arguments to launch the GUI version. For command line usage information add `-h/--help`:
 
    On Windows (cmd.exe):
 
