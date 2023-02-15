@@ -1,1 +1,70 @@
 # lock
+
+`lock` is a very simple password manager written in Python.
+
+It uses PyNaCl library's symmetrical encryption functionality to encrypt
+everything stored in the database.
+
+## Installation
+
+1. Clone the repository:
+
+   ```
+   git clone https://github.com/declval/lock
+   ```
+
+2. Change to the created directory:
+
+   ```
+   cd lock
+   ```
+
+3. Create a Python virtual environment and activate it (Optional):
+
+   On Windows (cmd.exe):
+
+   ```
+   py -m venv .venv
+   .venv\Scripts\activate.bat
+   ```
+
+   On Linux, macOS:
+
+   ```
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+4. Install missing dependencies:
+
+   ```
+   pip install -r requirements.txt
+   ```
+
+5. Run the program without arguments to see usage information:
+
+   On Windows (cmd.exe):
+
+   ```
+   py lock.py
+   ```
+
+   On Linux, macOS:
+
+   ```
+   python3 lock.py
+   ```
+
+6. Run the tests (Optional):
+
+   On Windows (cmd.exe):
+
+   ```
+   py -m unittest -b test_lock.py
+   ```
+
+   On Linux, macOS:
+
+   ```
+   python3 -m unittest -b test_lock.py
+   ```
