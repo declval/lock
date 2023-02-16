@@ -2,6 +2,7 @@ import os
 import secrets
 import unittest
 
+from helpers import file_read
 import lock
 
 
@@ -13,8 +14,7 @@ class TestCreate(unittest.TestCase):
 
     def test_create(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
-        with open(self.database_path, 'rb') as file:
-            encrypted = file.read()
+        encrypted = file_read(self.database_path)
         plaintext = self.pm.box.decrypt(encrypted)
         got = plaintext.decode()
         expected = '{"Google":{"Password":"1234","Username":"Alice"}}'
@@ -24,8 +24,7 @@ class TestCreate(unittest.TestCase):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
         with self.assertRaises(lock.EntryExistsError):
             self.pm.create('Google', {'Username': 'Alice', 'Password': '5678'})
-        with open(self.database_path, 'rb') as file:
-            encrypted = file.read()
+        encrypted = file_read(self.database_path)
         plaintext = self.pm.box.decrypt(encrypted)
         got = plaintext.decode()
         expected = '{"Google":{"Password":"1234","Username":"Alice"}}'
@@ -76,8 +75,7 @@ class TestUpdate(unittest.TestCase):
     def test_update(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
         self.pm.update('Google', {'Username': 'Alice', 'Password': '5678'})
-        with open(self.database_path, 'rb') as file:
-            encrypted = file.read()
+        encrypted = file_read(self.database_path)
         plaintext = self.pm.box.decrypt(encrypted)
         got = plaintext.decode()
         expected = '{"Google":{"Password":"5678","Username":"Alice"}}'
@@ -100,8 +98,7 @@ class TestDelete(unittest.TestCase):
     def test_delete(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
         self.pm.delete('Google', interactive=False)
-        with open(self.database_path, 'rb') as file:
-            encrypted = file.read()
+        encrypted = file_read(self.database_path)
         plaintext = self.pm.box.decrypt(encrypted)
         got = plaintext.decode()
         expected = '{}'
