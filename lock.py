@@ -12,11 +12,16 @@ import nacl.secret
 from helpers import error, file_read, file_write, parse_arguments
 
 PROGRAM_NAME = 'lock'
+
 DATABASE_PATH = os.path.join(os.path.expanduser('~'), f'.{PROGRAM_NAME}')
 STYLESHEET_PATH = os.path.join(os.path.dirname(__file__), 'stylesheet.css')
 FONT_PATH = os.path.join(os.path.dirname(__file__), 'Roboto-Regular.ttf')
+
 WINDOW_WIDTH = 400
 WINDOW_HEIGHT = 0
+
+JSON_SEPARATORS = (',', ':')
+JSON_SORT_KEYS = True
 
 
 class EntryDoesNotExistError(Exception):
@@ -75,7 +80,7 @@ class PasswordManager:
         if entry_value is None:
             entry_value = self.read_entry_value()
         self.contents[entry_key] = entry_value
-        plaintext = json.dumps(self.contents, separators=(',', ':'), sort_keys=True)
+        plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
         ciphertext = self.encrypt(plaintext)
         file_write(self.database_path, ciphertext)
 
@@ -102,7 +107,7 @@ class PasswordManager:
         if entry_value is None:
             entry_value = self.read_entry_value()
         self.contents[entry_key] = entry_value
-        plaintext = json.dumps(self.contents, separators=(',', ':'), sort_keys=True)
+        plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
         ciphertext = self.encrypt(plaintext)
         file_write(self.database_path, ciphertext)
 
@@ -116,7 +121,7 @@ class PasswordManager:
         match reply.lower():
             case 'yes' | 'y':
                 del self.contents[entry_key]
-                plaintext = json.dumps(self.contents, separators=(',', ':'), sort_keys=True)
+                plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
                 ciphertext = self.encrypt(plaintext)
                 file_write(self.database_path, ciphertext)
             case _:
