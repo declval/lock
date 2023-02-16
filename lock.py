@@ -30,6 +30,7 @@ class EntryExistsError(Exception):
 class PasswordManager:
 
     def __init__(self, database_path: str, gui: bool, password: str | None = None) -> None:
+        self.database_path = database_path
         self.gui = gui
         if password is None:
             password = getpass.getpass('Database password: ')
@@ -37,7 +38,6 @@ class PasswordManager:
                 error('Database password can not be empty')
         key = hashlib.blake2b(password.encode(), digest_size=32).digest()
         self.box = nacl.secret.SecretBox(key)
-        self.database_path = database_path
         if not os.path.exists(self.database_path):
             print(f'Creating new database {self.database_path}')
             ciphertext = self.encrypt('{}')
