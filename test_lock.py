@@ -5,12 +5,15 @@ import unittest
 from helpers import file_read
 import lock
 
+DATABASE_FILENAME_LENGTH = 4
+DATABASE_PASSWORD = '1234'
+
 
 class TestCreate(unittest.TestCase):
 
     def setUp(self):
-        self.database_path = f'.{secrets.token_hex(4)}'
-        self.pm = lock.PasswordManager(self.database_path, False, '1234')
+        self.database_path = f'.{secrets.token_hex(DATABASE_FILENAME_LENGTH)}'
+        self.pm = lock.PasswordManager(self.database_path, False, DATABASE_PASSWORD)
 
     def test_create(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
@@ -35,8 +38,8 @@ class TestCreate(unittest.TestCase):
 class TestRead(unittest.TestCase):
 
     def setUp(self):
-        self.database_path = f'.{secrets.token_hex(4)}'
-        self.pm = lock.PasswordManager(self.database_path, False, '1234')
+        self.database_path = f'.{secrets.token_hex(DATABASE_FILENAME_LENGTH)}'
+        self.pm = lock.PasswordManager(self.database_path, False, DATABASE_PASSWORD)
 
     def test_read_one_entry(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
@@ -67,8 +70,8 @@ class TestRead(unittest.TestCase):
 class TestUpdate(unittest.TestCase):
 
     def setUp(self):
-        self.database_path = f'.{secrets.token_hex(4)}'
-        self.pm = lock.PasswordManager(self.database_path, False, '1234')
+        self.database_path = f'.{secrets.token_hex(DATABASE_FILENAME_LENGTH)}'
+        self.pm = lock.PasswordManager(self.database_path, False, DATABASE_PASSWORD)
 
     def test_update(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
@@ -89,8 +92,8 @@ class TestUpdate(unittest.TestCase):
 class TestDelete(unittest.TestCase):
 
     def setUp(self):
-        self.database_path = f'.{secrets.token_hex(4)}'
-        self.pm = lock.PasswordManager(self.database_path, False, '1234')
+        self.database_path = f'.{secrets.token_hex(DATABASE_FILENAME_LENGTH)}'
+        self.pm = lock.PasswordManager(self.database_path, False, DATABASE_PASSWORD)
 
     def test_delete(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
