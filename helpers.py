@@ -1,6 +1,16 @@
 import argparse
 import sys
 
+from PySide6 import QtWidgets
+
+
+def layout_delete(layout: QtWidgets.QLayout) -> None:
+    for i in reversed(range(layout.count())):
+        item = layout.takeAt(i)
+        widget = item.widget()
+        widget.deleteLater()
+    layout.deleteLater()
+
 
 def error(message: str) -> None:
     print(message, file=sys.stderr)

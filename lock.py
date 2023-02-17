@@ -9,7 +9,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 import nacl.exceptions
 import nacl.secret
 
-from helpers import error, file_read, file_write, parse_arguments
+from helpers import error, file_read, file_write, layout_delete, parse_arguments
 
 PROGRAM_NAME = 'lock'
 
@@ -239,12 +239,11 @@ class CentralWidget(QtWidgets.QWidget):
     @QtCore.Slot()
     def delete(self, group_box: QtWidgets.QGroupBox) -> None:
         self.pm.delete(group_box.title(), interactive=False)
-        group_box.hide()
+        group_box.deleteLater()
 
     @QtCore.Slot()
     def minus(self, field_pair_layout: QtWidgets.QHBoxLayout) -> None:
-        for i in range(field_pair_layout.count()):
-            field_pair_layout.itemAt(i).widget().deleteLater()
+        layout_delete(field_pair_layout)
 
     @QtCore.Slot()
     def plus(self, field_pairs_layout: QtWidgets.QVBoxLayout) -> None:
