@@ -146,6 +146,9 @@ class CentralWidget(QWidget):
         def wrapper_create_new_entry(create_name: QLineEdit) -> Callable[[], None]:
             return lambda: self.create_new_entry(create_name)
         create_name.returnPressed.connect(wrapper_create_new_entry(create_name))
+        def wrapper_text_changed(create_name: QLineEdit) -> Callable[[], None]:
+            return lambda: create_name.setStyleSheet('background-color: #ffffff;')
+        create_name.textChanged.connect(wrapper_text_changed(create_name))
         create_layout.addWidget(create_name)
         create_button = QPushButton('Create')
         create_button.setProperty('class', 'button-alt')
