@@ -5,14 +5,6 @@ import sys
 from PySide6.QtWidgets import QLayout
 
 
-def layout_delete(layout: QLayout) -> None:
-    for i in reversed(range(layout.count())):
-        item = layout.takeAt(i)
-        widget = item.widget()
-        widget.deleteLater()
-    layout.deleteLater()
-
-
 def error(message: str) -> None:
     print(message, file=sys.stderr)
     sys.exit(1)
@@ -26,6 +18,14 @@ def file_read(file_path: Path) -> bytes:
 def file_write(file_path: Path, buffer: bytes) -> None:
     with open(file_path, 'wb') as file:
         file.write(buffer)
+
+
+def layout_delete(layout: QLayout) -> None:
+    for i in reversed(range(layout.count())):
+        item = layout.takeAt(i)
+        widget = item.widget()
+        widget.deleteLater()
+    layout.deleteLater()
 
 
 def parse_arguments() -> argparse.Namespace:
