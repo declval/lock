@@ -28,9 +28,18 @@ QPushButton {
 
 .button-icon-only {
     background-color: #eeeeee;
+    height: 12px;
     padding: 8px;
+    width: 12px;
 }
 
 .button-icon-only:hover {
     background-color: #ffffff;
+}
+
+.spacer {
+    background-color: #eeeeee;
+    height: 12px;
+    padding: 8px;
+    width: 12px;
 }

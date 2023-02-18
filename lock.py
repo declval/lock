@@ -139,6 +139,7 @@ class CentralWidget(QWidget):
         self.to_delete: list[str] = []
         self.plus_icon = QIcon(str(PROGRAM_DIR_PATH / 'plus-solid.svg'))
         self.minus_icon = QIcon(str(PROGRAM_DIR_PATH / 'minus-solid.svg'))
+        self.icon_size = QSize(12, 12)
         layout = QVBoxLayout()
         create_layout = QHBoxLayout()
         create_name = QLineEdit()
@@ -185,14 +186,18 @@ class CentralWidget(QWidget):
                     return lambda: self.show_hide_password(password)
                 show.clicked.connect(wrapper_show_hide_password(definition))
                 buttons_layout.addWidget(show)
-                buttons_layout.addSpacing(38)
+                spacer = QPushButton('')
+                spacer.setProperty('class', 'spacer')
+                buttons_layout.addWidget(spacer)
             field_pair_layout.addWidget(definition)
             if entry_value_name == 'Password':
-                field_pair_layout.addSpacing(38)
+                spacer = QPushButton('')
+                spacer.setProperty('class', 'spacer')
+                field_pair_layout.addWidget(spacer)
             else:
                 minus = QPushButton()
                 minus.setIcon(self.minus_icon)
-                minus.setIconSize(QSize(12, 12))
+                minus.setIconSize(self.icon_size)
                 minus.setProperty('class', 'button-icon-only')
                 def wrapper_minus(field_pair_layout: QHBoxLayout) -> Callable[[], None]:
                     return lambda: self.minus(field_pair_layout)
@@ -204,7 +209,7 @@ class CentralWidget(QWidget):
         entry_layout.addLayout(field_pairs_layout)
         plus = QPushButton()
         plus.setIcon(self.plus_icon)
-        plus.setIconSize(QSize(12, 12))
+        plus.setIconSize(self.icon_size)
         plus.setProperty('class', 'button-icon-only')
         def wrapper_plus(field_pairs_layout: QVBoxLayout) -> Callable[[], None]:
             return lambda: self.plus(field_pairs_layout)
@@ -261,7 +266,7 @@ class CentralWidget(QWidget):
         field_pair_layout.addWidget(definition)
         minus = QPushButton()
         minus.setIcon(self.minus_icon)
-        minus.setIconSize(QSize(12, 12))
+        minus.setIconSize(self.icon_size)
         minus.setProperty('class', 'button-icon-only')
         def wrapper_minus(field_pair_layout: QHBoxLayout) -> Callable[[], None]:
             return lambda: self.minus(field_pair_layout)
