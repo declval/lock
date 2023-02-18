@@ -1,10 +1,10 @@
 import argparse
 import sys
 
-from PySide6 import QtWidgets
+from PySide6.QtWidgets import QLayout
 
 
-def layout_delete(layout: QtWidgets.QLayout) -> None:
+def layout_delete(layout: QLayout) -> None:
     for i in reversed(range(layout.count())):
         item = layout.takeAt(i)
         widget = item.widget()
