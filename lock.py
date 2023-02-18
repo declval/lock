@@ -297,7 +297,10 @@ class CentralWidget(QWidget):
     @Slot()
     def save_all(self):
         for entry in self.to_delete:
-            self.pm.delete(entry, False)
+            try:
+                self.pm.delete(entry, False)
+            except EntryDoesNotExistError:
+                pass
         self.to_delete.clear()
         for entry in self.findChildren(QGroupBox):
             self.save(entry)
