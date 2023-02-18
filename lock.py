@@ -1,8 +1,8 @@
+from pathlib import Path
 from typing import Callable
 import getpass
 import hashlib
 import json
-import os.path
 import sys
 
 from PySide6.QtCore import QSize, Qt, Slot
@@ -15,9 +15,10 @@ from helpers import error, file_read, file_write, layout_delete, parse_arguments
 
 PROGRAM_NAME = 'lock'
 
-DATABASE_PATH = os.path.join(os.path.expanduser('~'), f'.{PROGRAM_NAME}')
-STYLESHEET_PATH = os.path.join(os.path.dirname(__file__), 'stylesheet.css')
-FONT_PATH = os.path.join(os.path.dirname(__file__), 'Roboto-Regular.ttf')
+PROGRAM_DIR_PATH = Path(__file__).parent
+DATABASE_PATH = Path.home() / f'.{PROGRAM_NAME}'
+STYLESHEET_PATH = PROGRAM_DIR_PATH / 'stylesheet.css'
+FONT_PATH = PROGRAM_DIR_PATH / 'Roboto-Regular.ttf'
 
 JSON_SEPARATORS = (',', ':')
 JSON_SORT_KEYS = True
@@ -33,7 +34,7 @@ class EntryExistsError(Exception):
 
 class PasswordManager:
 
-    def __init__(self, database_path: str, gui: bool, password: str | None = None) -> None:
+    def __init__(self, database_path: Path, gui: bool, password: str | None = None) -> None:
         self.database_path = database_path
         self.gui = gui
         if password is None:
@@ -42,7 +43,7 @@ class PasswordManager:
                 error('Database password can not be empty')
         key = hashlib.blake2b(password.encode(), digest_size=32).digest()
         self.box = SecretBox(key)
-        if not os.path.exists(self.database_path):
+        if not self.database_path.exists():
             print(f'Creating new database {self.database_path}')
             ciphertext = self.encrypt('{}')
             file_write(self.database_path, ciphertext)
@@ -135,8 +136,8 @@ class CentralWidget(QWidget):
         super().__init__()
         self.pm = pm
         self.contents = self.pm.read()
-        self.plus_icon = QIcon(os.path.join(os.path.dirname(__file__), 'plus-solid.svg'))
-        self.minus_icon = QIcon(os.path.join(os.path.dirname(__file__), 'minus-solid.svg'))
+        self.plus_icon = QIcon(str(PROGRAM_DIR_PATH / 'plus-solid.svg'))
+        self.minus_icon = QIcon(str(PROGRAM_DIR_PATH / 'minus-solid.svg'))
         layout = QVBoxLayout()
         create_layout = QHBoxLayout()
         create_name = QLineEdit()
@@ -343,7 +344,7 @@ def main() -> None:
 
     if len(sys.argv) == 1:
         app = QApplication()
-        QFontDatabase.addApplicationFont(FONT_PATH)
+        QFontDatabase.addApplicationFont(str(FONT_PATH))
         stylesheet = file_read(STYLESHEET_PATH).decode()
         app.setStyleSheet(stylesheet)
         open_password_window()

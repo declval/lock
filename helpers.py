@@ -1,3 +1,4 @@
+from pathlib import Path
 import argparse
 import sys
 
@@ -17,12 +18,12 @@ def error(message: str) -> None:
     sys.exit(1)
 
 
-def file_read(file_path: str) -> bytes:
+def file_read(file_path: Path) -> bytes:
     with open(file_path, 'rb') as file:
         return file.read()
 
 
-def file_write(file_path: str, buffer: bytes) -> None:
+def file_write(file_path: Path, buffer: bytes) -> None:
     with open(file_path, 'wb') as file:
         file.write(buffer)
 
