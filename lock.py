@@ -239,7 +239,6 @@ class CentralWidget(QWidget):
 
     @Slot()
     def delete(self, group_box: QGroupBox) -> None:
-        self.pm.delete(group_box.title(), interactive=False)
         group_box.deleteLater()
 
     @Slot()
