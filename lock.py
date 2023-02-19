@@ -199,6 +199,9 @@ class CentralWidget(QWidget):
                 spacer = QPushButton('')
                 spacer.setProperty('class', 'spacer')
                 field_pair_layout.addWidget(spacer)
+                field_pairs_layout.insertLayout(0, field_pair_layout)
+                if buttons_layout is not None:
+                    field_pairs_layout.insertLayout(1, buttons_layout)
             else:
                 minus = QPushButton()
                 minus.setIcon(self.minus_icon)
@@ -208,9 +211,7 @@ class CentralWidget(QWidget):
                     return lambda: self.minus(field_pair_layout)
                 minus.clicked.connect(wrapper_minus(field_pair_layout))
                 field_pair_layout.addWidget(minus)
-            field_pairs_layout.addLayout(field_pair_layout)
-            if buttons_layout is not None:
-                field_pairs_layout.addLayout(buttons_layout)
+                field_pairs_layout.addLayout(field_pair_layout)
         entry_layout.addLayout(field_pairs_layout)
         plus = QPushButton()
         plus.setIcon(self.plus_icon)
