@@ -18,6 +18,7 @@ from helpers import error, file_read, file_write, layout_delete, parse_arguments
 PROGRAM_NAME = 'lock'
 
 PROGRAM_DIR_PATH = Path(__file__).parent
+PROGRAM_ICON_PATH = PROGRAM_DIR_PATH / 'icon.png'
 DATABASE_PATH = Path.home() / f'.{PROGRAM_NAME}'
 STYLESHEET_PATH = PROGRAM_DIR_PATH / 'stylesheet.css'
 FONT_PATH = PROGRAM_DIR_PATH / 'Roboto-Regular.ttf'
@@ -366,6 +367,8 @@ class PasswordWindow(QWidget):
 def open_password_window() -> None:
     global password_window
     password_window = PasswordWindow()
+    program_icon = QIcon(str(PROGRAM_ICON_PATH))
+    password_window.setWindowIcon(program_icon)
     password_window.setWindowTitle(PROGRAM_NAME)
     password_window.show()
 
@@ -373,6 +376,8 @@ def open_password_window() -> None:
 def open_main_window(pm: PasswordManager) -> None:
     global main_window
     main_window = QMainWindow()
+    program_icon = QIcon(str(PROGRAM_ICON_PATH))
+    main_window.setWindowIcon(program_icon)
     main_window.layout().setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
     central_widget = CentralWidget(pm, main_window)
     save_all = QPushButton('Save all')
