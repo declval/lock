@@ -7,7 +7,9 @@ import sys
 
 from PySide6.QtCore import QSize, Qt, Slot
 from PySide6.QtGui import QFontDatabase, QIcon
-from PySide6.QtWidgets import QApplication, QGroupBox, QHBoxLayout, QLayout, QLineEdit, QMainWindow, QPushButton, QToolBar, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLayout,
+                               QLineEdit, QMainWindow, QPushButton, QStatusBar,
+                               QToolBar, QVBoxLayout, QWidget)
 from nacl.exceptions import CryptoError
 from nacl.secret import SecretBox
 
@@ -22,6 +24,8 @@ FONT_PATH = PROGRAM_DIR_PATH / 'Roboto-Regular.ttf'
 
 JSON_SEPARATORS = (',', ':')
 JSON_SORT_KEYS = True
+
+STATUSBAR_TIMEOUT = 4000
 
 
 class EntryDoesNotExistError(Exception):
@@ -132,9 +136,10 @@ class PasswordManager:
 
 class CentralWidget(QWidget):
 
-    def __init__(self, pm: PasswordManager) -> None:
+    def __init__(self, pm: PasswordManager, main_window: QMainWindow) -> None:
         super().__init__()
         self.pm = pm
+        self.main_window = main_window
         self.contents = self.pm.read()
         self.to_delete: list[str] = []
         self.plus_icon = QIcon(str(PROGRAM_DIR_PATH / 'plus-solid.svg'))
@@ -235,6 +240,7 @@ class CentralWidget(QWidget):
     def copy_password_to_clipboard(self, password: QLineEdit) -> None:
         clipboard = QApplication.clipboard()
         clipboard.setText(password.text())
+        self.main_window.statusBar().showMessage('Password copied to the clipboard', STATUSBAR_TIMEOUT)
 
     @Slot()
     def create_new_entry(self, create_name: QLineEdit) -> None:
@@ -275,7 +281,8 @@ class CentralWidget(QWidget):
         field_pairs_layout.addLayout(field_pair_layout)
 
     @Slot()
-    def save(self, group_box: QGroupBox) -> None:
+    def save(self, group_box: QGroupBox) -> bool:
+        empty = False
         line_edits = group_box.findChildren(QLineEdit)
         result = {}
         for i in range(0, len(line_edits), 2):
@@ -287,12 +294,17 @@ class CentralWidget(QWidget):
                 definition.setStyleSheet('background-color: #d61c54;')
             if name.text() and definition.text():
                 result[name.text()] = definition.text()
-        if 'Password' not in result:
-            return
+            else:
+                empty = True
+        if empty:
+            self.main_window.statusBar().showMessage('Some fields are empty', STATUSBAR_TIMEOUT)
+            return False
         try:
             self.pm.update(group_box.title(), result)
         except EntryDoesNotExistError:
             self.pm.create(group_box.title(), result)
+        self.main_window.statusBar().showMessage('Saved', STATUSBAR_TIMEOUT)
+        return True
 
     @Slot()
     def save_all(self):
@@ -302,8 +314,14 @@ class CentralWidget(QWidget):
             except EntryDoesNotExistError:
                 pass
         self.to_delete.clear()
+        errors = False
         for entry in self.findChildren(QGroupBox):
-            self.save(entry)
+            if not self.save(entry):
+                errors = True
+        if errors:
+            self.main_window.statusBar().showMessage('Some fields are empty', STATUSBAR_TIMEOUT)
+        else:
+            self.main_window.statusBar().showMessage('Saved all', STATUSBAR_TIMEOUT)
 
     @Slot()
     def show_hide_password(self, password: QLineEdit) -> None:
@@ -351,7 +369,7 @@ def open_main_window(pm: PasswordManager) -> None:
     global main_window
     main_window = QMainWindow()
     main_window.layout().setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
-    central_widget = CentralWidget(pm)
+    central_widget = CentralWidget(pm, main_window)
     save_all = QPushButton('Save all')
     save_all.clicked.connect(central_widget.save_all)
     toolbar = QToolBar()
@@ -359,6 +377,9 @@ def open_main_window(pm: PasswordManager) -> None:
     toolbar.setMovable(False)
     main_window.addToolBar(Qt.ToolBarArea.BottomToolBarArea, toolbar)
     main_window.setCentralWidget(central_widget)
+    status_bar = QStatusBar()
+    status_bar.setSizeGripEnabled(False)
+    main_window.setStatusBar(status_bar)
     main_window.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint)
     main_window.setWindowTitle(PROGRAM_NAME)
     main_window.show()
