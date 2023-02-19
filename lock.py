@@ -291,8 +291,12 @@ class CentralWidget(QWidget):
             definition = line_edits[i+1]
             if len(name.text()) == 0:
                 name.setStyleSheet('background-color: #d61c54;')
+            else:
+                name.setStyleSheet('background-color: #ffffff;')
             if len(definition.text()) == 0:
                 definition.setStyleSheet('background-color: #d61c54;')
+            else:
+                definition.setStyleSheet('background-color: #ffffff;')
             if name.text() and definition.text():
                 result[name.text()] = definition.text()
             else:
