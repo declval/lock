@@ -1,19 +1,15 @@
 from pathlib import Path
-from typing import Callable
 import getpass
 import hashlib
 import json
 import sys
 
-from PySide6.QtCore import QSize, Qt, Slot
-from PySide6.QtGui import QFontDatabase, QIcon
-from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLayout,
-                               QLineEdit, QMainWindow, QPushButton, QStatusBar,
-                               QToolBar, QVBoxLayout, QWidget)
+from PySide6.QtGui import QFontDatabase
+from PySide6.QtWidgets import QApplication
 from nacl.exceptions import CryptoError
 from nacl.secret import SecretBox
 
-from helpers import error, file_read, file_write, layout_delete, parse_arguments
+from helpers import error, file_read, file_write, parse_arguments
 
 PROGRAM_NAME = 'lock'
 
@@ -135,279 +131,19 @@ class PasswordManager:
                 pass
 
 
-class CentralWidget(QWidget):
-
-    def __init__(self, pm: PasswordManager, main_window: QMainWindow) -> None:
-        super().__init__()
-        self.pm = pm
-        self.main_window = main_window
-        self.contents = self.pm.read()
-        self.to_delete: list[str] = []
-        self.plus_icon = QIcon(str(PROGRAM_DIR_PATH / 'plus-solid.svg'))
-        self.minus_icon = QIcon(str(PROGRAM_DIR_PATH / 'minus-solid.svg'))
-        self.icon_size = QSize(12, 12)
-        layout = QVBoxLayout()
-        create_layout = QHBoxLayout()
-        create_name = QLineEdit()
-        create_name.setPlaceholderText('New entry name')
-        def wrapper_create_new_entry(create_name: QLineEdit) -> Callable[[], None]:
-            return lambda: self.create_new_entry(create_name)
-        create_name.returnPressed.connect(wrapper_create_new_entry(create_name))
-        def wrapper_text_changed(create_name: QLineEdit) -> Callable[[], None]:
-            return lambda: create_name.setStyleSheet('background-color: #ffffff;')
-        create_name.textChanged.connect(wrapper_text_changed(create_name))
-        create_layout.addWidget(create_name)
-        create_button = QPushButton('Create')
-        create_button.setProperty('class', 'button-alt')
-        create_button.clicked.connect(wrapper_create_new_entry(create_name))
-        create_layout.addWidget(create_button)
-        layout.addLayout(create_layout)
-        for entry_name, entry_value in self.contents.items():
-            entry = self.create_entry(entry_name, entry_value)
-            layout.addWidget(entry)
-        self.setLayout(layout)
-
-    def create_entry(self, entry_name: str, entry_value: dict[str, str]) -> QGroupBox:
-        entry = QGroupBox(entry_name)
-        entry_layout = QVBoxLayout()
-        field_pairs_layout = QVBoxLayout()
-        for entry_value_name, entry_value_definition in entry_value.items():
-            field_pair_layout = QHBoxLayout()
-            name = QLineEdit(entry_value_name)
-            field_pair_layout.addWidget(name)
-            definition = QLineEdit(entry_value_definition)
-            buttons_layout = None
-            if entry_value_name == 'Password':
-                name.setReadOnly(True)
-                definition.setEchoMode(QLineEdit.EchoMode.Password)
-                buttons_layout = QHBoxLayout()
-                buttons_layout.addStretch()
-                copy = QPushButton('Copy')
-                def wrapper_copy_password_to_clipboard(password: QLineEdit) -> Callable[[], None]:
-                    return lambda: self.copy_password_to_clipboard(password)
-                copy.clicked.connect(wrapper_copy_password_to_clipboard(definition))
-                buttons_layout.addWidget(copy)
-                show = QPushButton('Show')
-                def wrapper_show_hide_password(password: QLineEdit) -> Callable[[], None]:
-                    return lambda: self.show_hide_password(password)
-                show.clicked.connect(wrapper_show_hide_password(definition))
-                buttons_layout.addWidget(show)
-                spacer = QPushButton('')
-                spacer.setProperty('class', 'spacer')
-                buttons_layout.addWidget(spacer)
-            field_pair_layout.addWidget(definition)
-            if entry_value_name == 'Password':
-                spacer = QPushButton('')
-                spacer.setProperty('class', 'spacer')
-                field_pair_layout.addWidget(spacer)
-                field_pairs_layout.insertLayout(0, field_pair_layout)
-                if buttons_layout is not None:
-                    field_pairs_layout.insertLayout(1, buttons_layout)
-            else:
-                minus = QPushButton()
-                minus.setIcon(self.minus_icon)
-                minus.setIconSize(self.icon_size)
-                minus.setProperty('class', 'button-icon-only')
-                def wrapper_minus(field_pair_layout: QHBoxLayout) -> Callable[[], None]:
-                    return lambda: self.minus(field_pair_layout)
-                minus.clicked.connect(wrapper_minus(field_pair_layout))
-                field_pair_layout.addWidget(minus)
-                field_pairs_layout.addLayout(field_pair_layout)
-        entry_layout.addLayout(field_pairs_layout)
-        plus = QPushButton()
-        plus.setIcon(self.plus_icon)
-        plus.setIconSize(self.icon_size)
-        plus.setProperty('class', 'button-icon-only')
-        def wrapper_plus(field_pairs_layout: QVBoxLayout) -> Callable[[], None]:
-            return lambda: self.plus(field_pairs_layout)
-        plus.clicked.connect(wrapper_plus(field_pairs_layout))
-        entry_layout.addWidget(plus, 0, Qt.AlignmentFlag.AlignRight)
-        save = QPushButton('Save')
-        def wrapper_save(entry: QGroupBox) -> Callable[[], None]:
-            return lambda: self.save(entry)
-        save.clicked.connect(wrapper_save(entry))
-        entry_layout.addWidget(save)
-        delete = QPushButton('Delete')
-        delete.setProperty('class', 'button-warn')
-        def wrapper_delete(entry: QGroupBox) -> Callable[[], None]:
-            return lambda: self.delete(entry)
-        delete.clicked.connect(wrapper_delete(entry))
-        entry_layout.addWidget(delete)
-        # Necessary to get rid of UI flicker when fields are removed with the minus button
-        entry_layout.addStretch()
-        entry.setLayout(entry_layout)
-        return entry
-
-    @Slot()
-    def copy_password_to_clipboard(self, password: QLineEdit) -> None:
-        clipboard = QApplication.clipboard()
-        clipboard.setText(password.text())
-        self.main_window.statusBar().showMessage('Password copied to the clipboard', STATUSBAR_TIMEOUT)
-
-    @Slot()
-    def create_new_entry(self, create_name: QLineEdit) -> None:
-        entry_name = create_name.text()
-        entry_names = [entry.title() for entry in self.findChildren(QGroupBox)]
-        if not entry_name or entry_name in self.contents or entry_name in entry_names:
-            create_name.setStyleSheet('background-color: #d61c54;')
-            return
-        create_name.setStyleSheet('background-color: #ffffff;')
-        group_box = self.create_entry(entry_name, {'Password': ''})
-        self.layout().addWidget(group_box)
-
-    @Slot()
-    def delete(self, group_box: QGroupBox) -> None:
-        self.to_delete.append(group_box.title())
-        group_box.deleteLater()
-
-    @Slot()
-    def minus(self, field_pair_layout: QHBoxLayout) -> None:
-        layout_delete(field_pair_layout)
-
-    @Slot()
-    def plus(self, field_pairs_layout: QVBoxLayout) -> None:
-        field_pair_layout = QHBoxLayout()
-        name = QLineEdit()
-        name.setPlaceholderText('Name')
-        field_pair_layout.addWidget(name)
-        definition = QLineEdit()
-        definition.setPlaceholderText('Definition')
-        field_pair_layout.addWidget(definition)
-        minus = QPushButton()
-        minus.setIcon(self.minus_icon)
-        minus.setIconSize(self.icon_size)
-        minus.setProperty('class', 'button-icon-only')
-        def wrapper_minus(field_pair_layout: QHBoxLayout) -> Callable[[], None]:
-            return lambda: self.minus(field_pair_layout)
-        minus.clicked.connect(wrapper_minus(field_pair_layout))
-        field_pair_layout.addWidget(minus)
-        field_pairs_layout.addLayout(field_pair_layout)
-
-    @Slot()
-    def save(self, group_box: QGroupBox) -> bool:
-        empty = False
-        line_edits = group_box.findChildren(QLineEdit)
-        result = {}
-        for i in range(0, len(line_edits), 2):
-            name = line_edits[i]
-            definition = line_edits[i+1]
-            if len(name.text()) == 0:
-                name.setStyleSheet('background-color: #d61c54;')
-            else:
-                name.setStyleSheet('background-color: #ffffff;')
-            if len(definition.text()) == 0:
-                definition.setStyleSheet('background-color: #d61c54;')
-            else:
-                definition.setStyleSheet('background-color: #ffffff;')
-            if name.text() and definition.text():
-                result[name.text()] = definition.text()
-            else:
-                empty = True
-        if empty:
-            self.main_window.statusBar().showMessage('Some fields are empty', STATUSBAR_TIMEOUT)
-            return False
-        try:
-            self.pm.update(group_box.title(), result)
-        except EntryDoesNotExistError:
-            self.pm.create(group_box.title(), result)
-        self.main_window.statusBar().showMessage('Saved', STATUSBAR_TIMEOUT)
-        return True
-
-    @Slot()
-    def save_all(self):
-        for entry in self.to_delete:
-            try:
-                self.pm.delete(entry, False)
-            except EntryDoesNotExistError:
-                pass
-        self.to_delete.clear()
-        errors = False
-        for entry in self.findChildren(QGroupBox):
-            if not self.save(entry):
-                errors = True
-        if errors:
-            self.main_window.statusBar().showMessage('Some fields are empty', STATUSBAR_TIMEOUT)
-        else:
-            self.main_window.statusBar().showMessage('Saved all', STATUSBAR_TIMEOUT)
-
-    @Slot()
-    def show_hide_password(self, password: QLineEdit) -> None:
-        if password.echoMode() == QLineEdit.EchoMode.Password:
-            password.setEchoMode(QLineEdit.EchoMode.Normal)
-        else:
-            password.setEchoMode(QLineEdit.EchoMode.Password)
-
-
-class PasswordWindow(QWidget):
-
-    def __init__(self) -> None:
-        super().__init__()
-        layout = QHBoxLayout()
-        self.password = QLineEdit()
-        self.password.setEchoMode(QLineEdit.EchoMode.Password)
-        self.password.setPlaceholderText('Database password')
-        self.password.returnPressed.connect(self.run)
-        layout.addWidget(self.password)
-        button = QPushButton('Continue')
-        button.setProperty('class', 'button-alt')
-        button.clicked.connect(self.run)
-        layout.addWidget(button)
-        self.setLayout(layout)
-
-    @Slot()
-    def run(self) -> None:
-        if len(self.password.text()) == 0:
-            self.password.setStyleSheet('background-color: #d61c54;')
-            return
-        try:
-            pm = PasswordManager(DATABASE_PATH, True, self.password.text())
-        except CryptoError:
-            self.password.setStyleSheet('background-color: #d61c54;')
-            return
-        self.hide()
-        open_main_window(pm)
-
-
-def open_password_window() -> None:
-    global password_window
-    password_window = PasswordWindow()
-    program_icon = QIcon(str(PROGRAM_ICON_PATH))
-    password_window.setWindowIcon(program_icon)
-    password_window.setWindowTitle(PROGRAM_NAME)
-    password_window.show()
-
-
-def open_main_window(pm: PasswordManager) -> None:
-    global main_window
-    main_window = QMainWindow()
-    program_icon = QIcon(str(PROGRAM_ICON_PATH))
-    main_window.setWindowIcon(program_icon)
-    main_window.layout().setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
-    central_widget = CentralWidget(pm, main_window)
-    save_all = QPushButton('Save all')
-    save_all.clicked.connect(central_widget.save_all)
-    toolbar = QToolBar()
-    toolbar.addWidget(save_all)
-    toolbar.setMovable(False)
-    main_window.addToolBar(Qt.ToolBarArea.BottomToolBarArea, toolbar)
-    main_window.setCentralWidget(central_widget)
-    status_bar = QStatusBar()
-    status_bar.setSizeGripEnabled(False)
-    main_window.setStatusBar(status_bar)
-    main_window.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint)
-    main_window.setWindowTitle(PROGRAM_NAME)
-    main_window.show()
-
-
 def main() -> None:
     args = parse_arguments()
 
     if len(sys.argv) == 1:
+        # Importing module widgets here to avoid circular dependencies when running tests
+        import widgets
+
         app = QApplication()
         QFontDatabase.addApplicationFont(str(FONT_PATH))
         stylesheet = file_read(STYLESHEET_PATH).decode()
         app.setStyleSheet(stylesheet)
-        open_password_window()
+        password_widget = widgets.PasswordWidget()
+        password_widget.show()
         sys.exit(app.exec())
 
     try:
