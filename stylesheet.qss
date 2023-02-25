@@ -4,6 +4,19 @@ QWidget {
     font-family: "Roboto";
 }
 
+QGroupBox {
+    border: 1px solid #d8d8d8;
+    border-radius: 6px;
+    margin-top: 1ex;
+    padding: 6px;
+}
+
+QGroupBox::title {
+    padding: 0 6px;
+    subcontrol-origin: margin;
+    subcontrol-position: top center;
+}
+
 QLineEdit {
     background-color: #ffffff;
     border-radius: 6px;
@@ -22,6 +35,11 @@ QScrollArea {
 
 QStatusBar {
     background-color: #ffffff;
+}
+
+QToolBar {
+    border-top: 1px solid #d8d8d8;
+    padding: 6px;
 }
 
 .button-alt {
