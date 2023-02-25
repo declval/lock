@@ -180,7 +180,7 @@ class CentralWidget(QWidget):
     def create_new_entry(self, name_line_edit: QLineEdit) -> None:
         entry_name = name_line_edit.text()
         entry_names = [entry_group_box.title() for entry_group_box in self.findChildren(QGroupBox)]
-        if not entry_name or entry_name in self.contents or entry_name in entry_names:
+        if not entry_name or (entry_name in self.contents and entry_name in entry_names) or entry_name in entry_names:
             name_line_edit.setStyleSheet('background-color: #d61c54;')
             return
         name_line_edit.setStyleSheet('background-color: #ffffff;')
