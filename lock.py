@@ -24,6 +24,9 @@ JSON_SORT_KEYS = True
 
 STATUSBAR_TIMEOUT = 4000
 
+WINDOW_WIDTH = 450
+WINDOW_HEIGHT = 450
+
 
 class EntryDoesNotExistError(Exception):
     pass

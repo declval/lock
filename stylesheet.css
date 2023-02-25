@@ -17,6 +17,10 @@ QPushButton {
     padding: 6px 12px;
 }
 
+QScrollArea {
+    border: none;
+}
+
 QStatusBar {
     background-color: #ffffff;
 }
