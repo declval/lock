@@ -202,6 +202,7 @@ class CentralWidget(QWidget):
         entry_group_box = self.create_entry(entry_name, {'Password': ''})
         index =  self.scroll_area_widget_layout.count() - 1
         self.scroll_area_widget_layout.insertWidget(index, entry_group_box)
+        name_line_edit.clear()
 
     @Slot()
     def delete(self, entry_group_box: QGroupBox) -> None:
