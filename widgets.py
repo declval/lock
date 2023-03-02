@@ -44,7 +44,7 @@ class CentralWidget(QWidget):
         name_line_edit.returnPressed.connect(wrapper_create_new_entry(name_line_edit))
 
         def wrapper_text_changed(name_line_edit: QLineEdit) -> Callable[[], None]:
-            return lambda: name_line_edit.setStyleSheet('background-color: #ffffff;')
+            return lambda: name_line_edit.setStyleSheet('color: #535353;')
 
         name_line_edit.textChanged.connect(wrapper_text_changed(name_line_edit))
 
@@ -207,9 +207,9 @@ class CentralWidget(QWidget):
         entry_name = name_line_edit.text()
         entry_names = [entry_group_box.title() for entry_group_box in self.findChildren(QGroupBox)]
         if not entry_name or (entry_name in self.contents and entry_name in entry_names) or entry_name in entry_names:
-            name_line_edit.setStyleSheet('background-color: #d61c54;')
+            name_line_edit.setStyleSheet('color: #c15959;')
             return
-        name_line_edit.setStyleSheet('background-color: #ffffff;')
+        name_line_edit.setStyleSheet('color: #535353;')
         entry_group_box = self.create_entry(entry_name, {'Password': ''})
         index =  self.scroll_area_widget_layout.count() - 1
         self.scroll_area_widget_layout.insertWidget(index, entry_group_box)
@@ -265,14 +265,14 @@ class CentralWidget(QWidget):
             definition_line_edit = line_edits[i+1]
 
             if name_line_edit.text():
-                name_line_edit.setStyleSheet('background-color: #ffffff;')
+                name_line_edit.setStyleSheet('color: #535353;')
             else:
-                name_line_edit.setStyleSheet('background-color: #d61c54;')
+                name_line_edit.setStyleSheet('color: #c15959;')
 
             if definition_line_edit.text():
-                definition_line_edit.setStyleSheet('background-color: #ffffff;')
+                definition_line_edit.setStyleSheet('color: #535353;')
             else:
-                definition_line_edit.setStyleSheet('background-color: #d61c54;')
+                definition_line_edit.setStyleSheet('color: #c15959;')
 
             if name_line_edit.text() and definition_line_edit.text():
                 result[name_line_edit.text()] = definition_line_edit.text()
@@ -383,13 +383,13 @@ class PasswordWidget(QWidget):
     @Slot()
     def run(self) -> None:
         if not self.password_line_edit.text():
-            self.password_line_edit.setStyleSheet('background-color: #d61c54;')
+            self.password_line_edit.setStyleSheet('color: #c15959;')
             return
 
         try:
             pm = lock.PasswordManager(lock.DATABASE_PATH, True, self.password_line_edit.text())
         except CryptoError:
-            self.password_line_edit.setStyleSheet('background-color: #d61c54;')
+            self.password_line_edit.setStyleSheet('color: #c15959;')
             return
 
         self.hide()

@@ -1,11 +1,11 @@
 QWidget {
-    background-color: #eeeeee;
-    color: #404040;
+    background-color: #ffffff;
+    color: #535353;
     font-family: "Roboto";
 }
 
 QGroupBox {
-    border: 1px solid #d8d8d8;
+    border: 1px solid #e1e1e1;
     border-radius: 6px;
     margin-top: 1ex;
 }
@@ -17,15 +17,18 @@ QGroupBox::title {
 }
 
 QLineEdit {
-    background-color: #ffffff;
+    background-color: #f5f5f5;
     border-radius: 6px;
     lineedit-password-character: 42;
     lineedit-password-mask-delay: 400;
     padding: 6px 12px;
+    selection-background-color: #535353;
+    selection-color: #f5f5f5;
 }
 
 QPushButton {
-    background-color: #ffffff;
+    background-color: #f5f5f5;
+    border: 1px solid #e6e6e6;
     border-radius: 6px;
     padding: 6px 12px;
 }
@@ -35,36 +38,35 @@ QScrollArea {
 }
 
 QStatusBar {
-    background-color: #ffffff;
+    border-top: 1px solid #e6e6e6;
 }
 
 QToolBar {
-    border-top: 1px solid #d8d8d8;
+    border-top: 1px solid #e6e6e6;
     padding: 10px;
 }
 
 .button-alt {
-    background-color: #404040;
+    background-color: #535353;
+    border: none;
     color: #ffffff;
 }
 
 .button-warn {
-    color: #d61c54;
+    color: #c15959;
 }
 
 .button-icon-only {
-    background-color: #eeeeee;
+    background-color: #ffffff;
+    border: none;
     height: 12px;
     padding: 8px;
     width: 12px;
 }
 
-.button-icon-only:hover {
-    background-color: #ffffff;
-}
-
 .spacer {
-    background-color: #eeeeee;
+    background-color: #ffffff;
+    border: none;
     height: 12px;
     padding: 8px;
     width: 12px;
