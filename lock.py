@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QApplication
 from nacl.exceptions import CryptoError
 from nacl.secret import SecretBox
 
-from helpers import error, file_read, file_write, parse_arguments
+from helpers import error, file_read, file_write, parse_arguments, widget_center
 
 PROGRAM_NAME = 'lock'
 
@@ -145,8 +145,9 @@ def main() -> None:
         QFontDatabase.addApplicationFont(str(FONT_PATH))
         stylesheet = file_read(STYLESHEET_PATH).decode()
         app.setStyleSheet(stylesheet)
-        password_widget = widgets.PasswordWidget()
+        password_widget = widgets.PasswordWidget(app)
         password_widget.show()
+        widget_center(app, password_widget)
         sys.exit(app.exec())
 
     pm: PasswordManager | None = None

@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLayout,
                                QStatusBar, QToolBar, QVBoxLayout, QWidget)
 from nacl.exceptions import CryptoError
 
-from helpers import layout_delete
+from helpers import layout_delete, widget_center
 import lock
 
 MARGIN = 20
@@ -352,8 +352,10 @@ class MainWindow(QMainWindow):
 
 class PasswordWidget(QWidget):
 
-    def __init__(self) -> None:
+    def __init__(self, app: QApplication) -> None:
         super().__init__()
+
+        self.app = app
 
         program_icon = QIcon(str(lock.PROGRAM_ICON_PATH))
 
@@ -401,3 +403,4 @@ class PasswordWidget(QWidget):
 
         main_window = MainWindow(pm)
         main_window.show()
+        widget_center(self.app, main_window)

@@ -2,7 +2,7 @@ from pathlib import Path
 import argparse
 import sys
 
-from PySide6.QtWidgets import QLayout
+from PySide6.QtWidgets import QApplication, QLayout, QWidget
 
 
 def error(message: str) -> None:
@@ -40,3 +40,20 @@ def parse_arguments() -> argparse.Namespace:
     parser_delete = subparsers.add_parser('delete')
     parser_delete.add_argument('entry')
     return parser.parse_args()
+
+
+# This function needs to be called after the show() method on a widget. Otherwise
+# widget size is reported incorrectly
+def widget_center(app: QApplication, widget: QWidget) -> None:
+    screens = app.screens()
+    if len(screens) == 1:
+        screen_width = screens[0].availableGeometry().width()
+        screen_height = screens[0].availableGeometry().height()
+
+        window_width = widget.frameGeometry().width()
+        window_height = widget.frameGeometry().height()
+
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+
+        widget.move(x, y)
