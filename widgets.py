@@ -10,6 +10,9 @@ from nacl.exceptions import CryptoError
 from helpers import layout_delete
 import lock
 
+MARGIN = 20
+SPACING = 10
+
 
 class CentralWidget(QWidget):
 
@@ -26,8 +29,11 @@ class CentralWidget(QWidget):
         self.to_delete: list[str] = []
 
         layout = QVBoxLayout()
+        layout.setContentsMargins(MARGIN, MARGIN, MARGIN, MARGIN)
+        layout.setSpacing(MARGIN)
 
         create_layout = QHBoxLayout()
+        create_layout.setSpacing(SPACING)
 
         name_line_edit = QLineEdit()
         name_line_edit.setPlaceholderText('New entry name')
@@ -53,6 +59,9 @@ class CentralWidget(QWidget):
         layout.addLayout(create_layout)
 
         self.scroll_area_widget_layout = QVBoxLayout()
+        self.scroll_area_widget_layout.setContentsMargins(0, 0, 0, 0)
+        self.scroll_area_widget_layout.setSpacing(SPACING)
+
         self.scroll_area_widget_layout.addStretch()
 
         for entry_name, entry_value in self.contents.items():
@@ -77,6 +86,8 @@ class CentralWidget(QWidget):
         entry_group_box = QGroupBox(entry_name)
 
         entry_layout = QVBoxLayout()
+        entry_layout.setContentsMargins(MARGIN, MARGIN, MARGIN, MARGIN)
+        entry_layout.setSpacing(SPACING)
 
         field_pairs_layout = QVBoxLayout()
 
@@ -351,6 +362,8 @@ class PasswordWidget(QWidget):
         self.setWindowTitle(lock.PROGRAM_NAME)
 
         layout = QHBoxLayout()
+        layout.setContentsMargins(MARGIN, MARGIN, MARGIN, MARGIN)
+        layout.setSpacing(SPACING)
 
         self.password_line_edit = QLineEdit()
         self.password_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
