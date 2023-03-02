@@ -370,6 +370,11 @@ class PasswordWidget(QWidget):
         self.password_line_edit.setPlaceholderText('Database password')
         self.password_line_edit.returnPressed.connect(self.run)
 
+        def wrapper_text_changed(password_line_edit: QLineEdit) -> Callable[[], None]:
+            return lambda: password_line_edit.setStyleSheet('color: #535353;')
+
+        self.password_line_edit.textChanged.connect(wrapper_text_changed(self.password_line_edit))
+
         layout.addWidget(self.password_line_edit)
 
         continue_push_button = QPushButton('Continue')
