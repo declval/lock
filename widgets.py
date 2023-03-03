@@ -1,10 +1,10 @@
 from typing import Callable
 
-from PySide6.QtCore import QSize, Qt, Slot
-from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout,
-                               QLineEdit, QMainWindow, QPushButton, QScrollArea,
-                               QStatusBar, QToolBar, QVBoxLayout, QWidget)
+from PySide6.QtCore import Property, QEvent, QPropertyAnimation, QSize, Qt, Slot
+from PySide6.QtGui import QColor, QEnterEvent, QIcon, QPalette
+from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLineEdit,
+                               QMainWindow, QPushButton, QScrollArea, QStatusBar,
+                               QToolBar, QVBoxLayout, QWidget)
 from nacl.exceptions import CryptoError
 
 from helpers import layout_delete, widget_center
@@ -12,6 +12,59 @@ import lock
 
 MARGIN = 20
 SPACING = 10
+
+BUTTON_ANIMATION_DURATION = 200
+BUTTON_ANIMATION_COLOR_STEP = 10
+
+
+class AnimatedPushButton(QPushButton):
+    def __init__(self, text: str) -> None:
+        super().__init__(text)
+
+        # Initialized after show() method is executed because self.get_color()
+        # returns an incorrect result at this point
+        self.initial_start_color = None
+        self.initial_end_color = None
+
+    def animation(self, lighten: bool) -> QPropertyAnimation:
+        animation = QPropertyAnimation(self, b'color', self)
+        animation.setDuration(BUTTON_ANIMATION_DURATION)
+        start_color = self.get_color()
+        if self.initial_start_color is None:
+            self.initial_start_color = start_color
+            self.initial_end_color = QColor(
+                self.initial_start_color.red() + BUTTON_ANIMATION_COLOR_STEP,
+                self.initial_start_color.green() + BUTTON_ANIMATION_COLOR_STEP,
+                self.initial_start_color.blue() + BUTTON_ANIMATION_COLOR_STEP
+            )
+        if lighten:
+            end_color = self.initial_end_color
+        else:
+            end_color = self.initial_start_color
+        animation.setStartValue(start_color)
+        animation.setEndValue(end_color)
+        return animation
+
+    def enterEvent(self, event: QEnterEvent) -> None:
+        animation = self.animation(lighten=True)
+        animation.start()
+        return super().enterEvent(event)
+
+    def leaveEvent(self, event: QEvent) -> None:
+        animation = self.animation(lighten=False)
+        animation.start()
+        return super().leaveEvent(event)
+
+    def get_color(self) -> QColor:
+        palette = self.palette()
+        return palette.color(QPalette.ColorRole.Button)
+
+    def set_color(self, color: QColor) -> None:
+        property = 'background-color'
+        value = f'rgb({color.red()}, {color.green()}, {color.blue()})'
+        self.setStyleSheet(f'{property}: {value};')
+
+    color = Property(QColor, get_color, set_color)
 
 
 class CentralWidget(QWidget):
@@ -50,7 +103,7 @@ class CentralWidget(QWidget):
 
         create_layout.addWidget(name_line_edit)
 
-        create_push_button = QPushButton('Create')
+        create_push_button = AnimatedPushButton('Create')
         create_push_button.setProperty('class', 'button-alt')
         create_push_button.clicked.connect(wrapper_create_new_entry(name_line_edit))
 
@@ -118,7 +171,7 @@ class CentralWidget(QWidget):
 
                 buttons_layout.addStretch()
 
-                copy_push_button = QPushButton('Copy')
+                copy_push_button = AnimatedPushButton('Copy')
 
                 def wrapper_copy_password_to_clipboard(password_line_edit: QLineEdit) -> Callable[[], None]:
                     return lambda: self.copy_password_to_clipboard(password_line_edit)
@@ -127,7 +180,7 @@ class CentralWidget(QWidget):
 
                 buttons_layout.addWidget(copy_push_button)
 
-                show_push_button = QPushButton('Show')
+                show_push_button = AnimatedPushButton('Show')
 
                 def wrapper_show_hide_password(password_line_edit: QLineEdit) -> Callable[[], None]:
                     return lambda: self.show_hide_password(password_line_edit)
@@ -171,7 +224,7 @@ class CentralWidget(QWidget):
 
         entry_layout.addWidget(plus_push_button, 0, Qt.AlignmentFlag.AlignRight)
 
-        save_push_button = QPushButton('Save')
+        save_push_button = AnimatedPushButton('Save')
 
         def wrapper_save(entry_group_box: QGroupBox) -> Callable[[], None]:
             return lambda: self.save(entry_group_box)
@@ -180,7 +233,7 @@ class CentralWidget(QWidget):
 
         entry_layout.addWidget(save_push_button)
 
-        delete_push_button = QPushButton('Delete')
+        delete_push_button = AnimatedPushButton('Delete')
         delete_push_button.setProperty('class', 'button-warn')
 
         def wrapper_delete(entry_group_box: QGroupBox) -> Callable[[], None]:
@@ -335,7 +388,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(central_widget)
 
-        save_all_push_button = QPushButton('Save all')
+        save_all_push_button = AnimatedPushButton('Save all')
         save_all_push_button.clicked.connect(central_widget.save_all)
 
         tool_bar = QToolBar()
@@ -379,7 +432,7 @@ class PasswordWidget(QWidget):
 
         layout.addWidget(self.password_line_edit)
 
-        continue_push_button = QPushButton('Continue')
+        continue_push_button = AnimatedPushButton('Continue')
         continue_push_button.setProperty('class', 'button-alt')
         continue_push_button.clicked.connect(self.run)
 
