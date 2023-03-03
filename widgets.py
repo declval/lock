@@ -69,6 +69,58 @@ class AnimatedPushButton(QPushButton):
     color = Property(QColor, get_color, set_color)
 
 
+class FieldPair(QWidget):
+    def __init__(self, name: str = '', definition: str = '', password: bool = False) -> None:
+        super().__init__()
+
+        self.icon_size = QSize(12, 12)
+        self.minus_icon = QIcon(str(lock.PROGRAM_DIR_PATH / 'minus-solid.svg'))
+
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(SPACING)
+
+        self.name_line_edit = QLineEdit(name)
+        self.name_line_edit.setPlaceholderText('Name')
+        self.name_line_edit.textChanged.connect(line_edit_reset_color(self.name_line_edit))
+
+        layout.addWidget(self.name_line_edit)
+
+        self.definition_line_edit = QLineEdit(definition)
+        self.definition_line_edit.setPlaceholderText('Definition')
+        self.definition_line_edit.textChanged.connect(line_edit_reset_color(self.definition_line_edit))
+
+        layout.addWidget(self.definition_line_edit)
+
+        if password:
+            self.name_line_edit.setReadOnly(True)
+            self.definition_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
+
+            spacer_push_button = QPushButton('')
+            spacer_push_button.setProperty('class', 'spacer')
+
+            layout.addWidget(spacer_push_button)
+        else:
+            minus_push_button = QPushButton()
+            minus_push_button.setIcon(self.minus_icon)
+            minus_push_button.setIconSize(self.icon_size)
+            minus_push_button.setProperty('class', 'button-icon-only')
+
+            def wrapper_minus(layout: QHBoxLayout) -> Callable[[], None]:
+                return lambda: self.minus(layout)
+
+            minus_push_button.clicked.connect(wrapper_minus(layout))
+
+            layout.addWidget(minus_push_button)
+
+        self.setLayout(layout)
+
+    @Slot()
+    def minus(self, layout: QHBoxLayout) -> None:
+        layout_delete(layout)
+        self.deleteLater()
+
+
 class CentralWidget(QWidget):
 
     def __init__(self, pm: lock.PasswordManager, main_window: QMainWindow) -> None:
@@ -79,7 +131,6 @@ class CentralWidget(QWidget):
 
         self.contents = self.pm.read()
         self.icon_size = QSize(12, 12)
-        self.minus_icon = QIcon(str(lock.PROGRAM_DIR_PATH / 'minus-solid.svg'))
         self.plus_icon = QIcon(str(lock.PROGRAM_DIR_PATH / 'plus-solid.svg'))
         self.to_delete: list[str] = []
 
@@ -143,31 +194,12 @@ class CentralWidget(QWidget):
         field_pairs_layout = QVBoxLayout()
 
         for entry_value_name, entry_value_definition in entry_value.items():
-            field_pair_layout = QHBoxLayout()
-
-            name_line_edit = QLineEdit(entry_value_name)
-            name_line_edit.setPlaceholderText('Name')
-            name_line_edit.textChanged.connect(line_edit_reset_color(name_line_edit))
-
-            field_pair_layout.addWidget(name_line_edit)
-
-            definition_line_edit = QLineEdit(entry_value_definition)
-            definition_line_edit.setPlaceholderText('Definition')
-            definition_line_edit.textChanged.connect(line_edit_reset_color(definition_line_edit))
+            field_pair = FieldPair(entry_value_name,
+                                   entry_value_definition,
+                                   True if entry_value_name == 'Password' else False)
 
             if entry_value_name == 'Password':
-                name_line_edit.setReadOnly(True)
-                definition_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
-
-            field_pair_layout.addWidget(definition_line_edit)
-
-            if entry_value_name == 'Password':
-                spacer_push_button = QPushButton('')
-                spacer_push_button.setProperty('class', 'spacer')
-
-                field_pair_layout.addWidget(spacer_push_button)
-
-                field_pairs_layout.insertLayout(0, field_pair_layout)
+                field_pairs_layout.insertWidget(0, field_pair)
 
                 buttons_layout = QHBoxLayout()
 
@@ -178,7 +210,7 @@ class CentralWidget(QWidget):
                 def wrapper_copy_password_to_clipboard(password_line_edit: QLineEdit) -> Callable[[], None]:
                     return lambda: self.copy_password_to_clipboard(password_line_edit)
 
-                copy_push_button.clicked.connect(wrapper_copy_password_to_clipboard(definition_line_edit))
+                copy_push_button.clicked.connect(wrapper_copy_password_to_clipboard(field_pair.definition_line_edit))
 
                 buttons_layout.addWidget(copy_push_button)
 
@@ -187,7 +219,7 @@ class CentralWidget(QWidget):
                 def wrapper_show_hide_password(password_line_edit: QLineEdit) -> Callable[[], None]:
                     return lambda: self.show_hide_password(password_line_edit)
 
-                show_push_button.clicked.connect(wrapper_show_hide_password(definition_line_edit))
+                show_push_button.clicked.connect(wrapper_show_hide_password(field_pair.definition_line_edit))
 
                 buttons_layout.addWidget(show_push_button)
 
@@ -198,19 +230,7 @@ class CentralWidget(QWidget):
 
                 field_pairs_layout.insertLayout(1, buttons_layout)
             else:
-                minus_push_button = QPushButton()
-                minus_push_button.setIcon(self.minus_icon)
-                minus_push_button.setIconSize(self.icon_size)
-                minus_push_button.setProperty('class', 'button-icon-only')
-
-                def wrapper_minus(field_pair_layout: QHBoxLayout) -> Callable[[], None]:
-                    return lambda: self.minus(field_pair_layout)
-
-                minus_push_button.clicked.connect(wrapper_minus(field_pair_layout))
-
-                field_pair_layout.addWidget(minus_push_button)
-
-                field_pairs_layout.addLayout(field_pair_layout)
+                field_pairs_layout.addWidget(field_pair)
 
         entry_layout.addLayout(field_pairs_layout)
 
@@ -293,38 +313,9 @@ class CentralWidget(QWidget):
         entry_group_box.deleteLater()
 
     @Slot()
-    def minus(self, field_pair_layout: QHBoxLayout) -> None:
-        layout_delete(field_pair_layout)
-
-    @Slot()
     def plus(self, field_pairs_layout: QVBoxLayout) -> None:
-        field_pair_layout = QHBoxLayout()
-
-        name_line_edit = QLineEdit()
-        name_line_edit.setPlaceholderText('Name')
-        name_line_edit.textChanged.connect(line_edit_reset_color(name_line_edit))
-
-        field_pair_layout.addWidget(name_line_edit)
-
-        definition_line_edit = QLineEdit()
-        definition_line_edit.setPlaceholderText('Definition')
-        definition_line_edit.textChanged.connect(line_edit_reset_color(definition_line_edit))
-
-        field_pair_layout.addWidget(definition_line_edit)
-
-        minus_push_button = QPushButton()
-        minus_push_button.setIcon(self.minus_icon)
-        minus_push_button.setIconSize(self.icon_size)
-        minus_push_button.setProperty('class', 'button-icon-only')
-
-        def wrapper_minus(field_pair_layout: QHBoxLayout) -> Callable[[], None]:
-            return lambda: self.minus(field_pair_layout)
-
-        minus_push_button.clicked.connect(wrapper_minus(field_pair_layout))
-
-        field_pair_layout.addWidget(minus_push_button)
-
-        field_pairs_layout.addLayout(field_pair_layout)
+        field_pair = FieldPair()
+        field_pairs_layout.addWidget(field_pair)
 
     @Slot()
     def save(self, entry_group_box: QGroupBox) -> bool:
