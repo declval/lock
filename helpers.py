@@ -1,8 +1,9 @@
 from pathlib import Path
+from typing import Callable
 import argparse
 import sys
 
-from PySide6.QtWidgets import QApplication, QLayout, QWidget
+from PySide6.QtWidgets import QApplication, QLayout, QLineEdit, QWidget
 
 
 def error(message: str) -> None:
@@ -26,6 +27,10 @@ def layout_delete(layout: QLayout) -> None:
         widget = item.widget()
         widget.deleteLater()
     layout.deleteLater()
+
+
+def line_edit_reset_color(line_edit: QLineEdit) -> Callable[[], None]:
+    return lambda: line_edit.setStyleSheet('color: #535353;')
 
 
 def parse_arguments() -> argparse.Namespace:

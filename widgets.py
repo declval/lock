@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLineEdit,
                                QToolBar, QVBoxLayout, QWidget)
 from nacl.exceptions import CryptoError
 
-from helpers import layout_delete, widget_center
+from helpers import layout_delete, line_edit_reset_color, widget_center
 import lock
 
 MARGIN = 20
@@ -95,11 +95,7 @@ class CentralWidget(QWidget):
             return lambda: self.create_new_entry(name_line_edit)
 
         name_line_edit.returnPressed.connect(wrapper_create_new_entry(name_line_edit))
-
-        def wrapper_text_changed(name_line_edit: QLineEdit) -> Callable[[], None]:
-            return lambda: name_line_edit.setStyleSheet('color: #535353;')
-
-        name_line_edit.textChanged.connect(wrapper_text_changed(name_line_edit))
+        name_line_edit.textChanged.connect(line_edit_reset_color(name_line_edit))
 
         create_layout.addWidget(name_line_edit)
 
@@ -148,10 +144,12 @@ class CentralWidget(QWidget):
             field_pair_layout = QHBoxLayout()
 
             name_line_edit = QLineEdit(entry_value_name)
+            name_line_edit.textChanged.connect(line_edit_reset_color(name_line_edit))
 
             field_pair_layout.addWidget(name_line_edit)
 
             definition_line_edit = QLineEdit(entry_value_definition)
+            definition_line_edit.textChanged.connect(line_edit_reset_color(definition_line_edit))
 
             if entry_value_name == 'Password':
                 name_line_edit.setReadOnly(True)
@@ -283,11 +281,13 @@ class CentralWidget(QWidget):
 
         name_line_edit = QLineEdit()
         name_line_edit.setPlaceholderText('Name')
+        name_line_edit.textChanged.connect(line_edit_reset_color(name_line_edit))
 
         field_pair_layout.addWidget(name_line_edit)
 
         definition_line_edit = QLineEdit()
         definition_line_edit.setPlaceholderText('Definition')
+        definition_line_edit.textChanged.connect(line_edit_reset_color(definition_line_edit))
 
         field_pair_layout.addWidget(definition_line_edit)
 
@@ -424,11 +424,7 @@ class PasswordWidget(QWidget):
         self.password_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_line_edit.setPlaceholderText('Database password')
         self.password_line_edit.returnPressed.connect(self.run)
-
-        def wrapper_text_changed(password_line_edit: QLineEdit) -> Callable[[], None]:
-            return lambda: password_line_edit.setStyleSheet('color: #535353;')
-
-        self.password_line_edit.textChanged.connect(wrapper_text_changed(self.password_line_edit))
+        self.password_line_edit.textChanged.connect(line_edit_reset_color(self.password_line_edit))
 
         layout.addWidget(self.password_line_edit)
 
