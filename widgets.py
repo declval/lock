@@ -262,7 +262,6 @@ class CentralWidget(QWidget):
         if not entry_name or (entry_name in self.contents and entry_name in entry_names) or entry_name in entry_names:
             name_line_edit.setStyleSheet('color: #c15959;')
             return
-        name_line_edit.setStyleSheet('color: #535353;')
         entry_group_box = self.create_entry(entry_name, {'Password': ''})
         index =  self.scroll_area_widget_layout.count() - 1
         self.scroll_area_widget_layout.insertWidget(index, entry_group_box)
@@ -319,14 +318,10 @@ class CentralWidget(QWidget):
             name_line_edit = line_edits[i]
             definition_line_edit = line_edits[i+1]
 
-            if name_line_edit.text():
-                name_line_edit.setStyleSheet('color: #535353;')
-            else:
+            if not name_line_edit.text():
                 name_line_edit.setStyleSheet('color: #c15959;')
 
-            if definition_line_edit.text():
-                definition_line_edit.setStyleSheet('color: #535353;')
-            else:
+            if not definition_line_edit.text():
                 definition_line_edit.setStyleSheet('color: #c15959;')
 
             if name_line_edit.text() and definition_line_edit.text():
