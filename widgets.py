@@ -87,7 +87,6 @@ class FieldPair(QWidget):
         layout.addWidget(self.name_line_edit)
 
         self.definition_line_edit = QLineEdit(definition)
-        self.definition_line_edit.setPlaceholderText('Definition')
         self.definition_line_edit.textChanged.connect(line_edit_reset_color(self.definition_line_edit))
 
         layout.addWidget(self.definition_line_edit)
@@ -95,12 +94,15 @@ class FieldPair(QWidget):
         if password:
             self.name_line_edit.setReadOnly(True)
             self.definition_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
+            self.definition_line_edit.setPlaceholderText('Password')
 
             spacer_push_button = QPushButton('')
             spacer_push_button.setProperty('class', 'spacer')
 
             layout.addWidget(spacer_push_button)
         else:
+            self.definition_line_edit.setPlaceholderText('Definition')
+
             minus_push_button = QPushButton()
             minus_push_button.setIcon(self.minus_icon)
             minus_push_button.setIconSize(self.icon_size)
