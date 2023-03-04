@@ -323,22 +323,19 @@ class CentralWidget(QWidget):
     def save(self, entry_group_box: QGroupBox) -> bool:
         is_empty = False
 
-        line_edits = entry_group_box.findChildren(QLineEdit)
+        field_pairs = entry_group_box.findChildren(FieldPair)
 
         result = {}
 
-        for i in range(0, len(line_edits), 2):
-            name_line_edit = line_edits[i]
-            definition_line_edit = line_edits[i+1]
+        for field_pair in field_pairs:
+            if not field_pair.name_line_edit.text():
+                field_pair.name_line_edit.setStyleSheet('color: #c15959;')
 
-            if not name_line_edit.text():
-                name_line_edit.setStyleSheet('color: #c15959;')
+            if not field_pair.definition_line_edit.text():
+                field_pair.definition_line_edit.setStyleSheet('color: #c15959;')
 
-            if not definition_line_edit.text():
-                definition_line_edit.setStyleSheet('color: #c15959;')
-
-            if name_line_edit.text() and definition_line_edit.text():
-                result[name_line_edit.text()] = definition_line_edit.text()
+            if field_pair.name_line_edit.text() and field_pair.definition_line_edit.text():
+                result[field_pair.name_line_edit.text()] = field_pair.definition_line_edit.text()
             else:
                 is_empty = True
 
