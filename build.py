@@ -11,6 +11,7 @@ subprocess.run([
     '--add-data', f'plus-solid.svg{os.pathsep}.',
     '--add-data', f'stylesheet.qss{os.pathsep}.',
     '--hidden-import', '_cffi_backend',
+    '--icon', 'icon.png',
     '--noconsole',
     '--onefile',
     f'{PROGRAM_NAME}.py'
