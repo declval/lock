@@ -60,11 +60,11 @@ everything stored in the database.
    On Windows (cmd.exe):
 
    ```
-   py -m unittest -b test_lock.py
+   py -m unittest test_lock.py
    ```
 
    On Linux, macOS:
 
    ```
-   python3 -m unittest -b test_lock.py
+   python3 -m unittest test_lock.py
    ```
