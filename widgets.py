@@ -119,6 +119,7 @@ class FieldPair(QWidget):
     def minus(self, layout: QHBoxLayout) -> None:
         layout_delete(layout)
         self.deleteLater()
+        self.updateGeometry()
 
 
 class CentralWidget(QWidget):
@@ -287,6 +288,7 @@ class CentralWidget(QWidget):
         entry_group_box = self.create_entry(entry_name, {'Password': ''})
         index =  self.scroll_area_widget_layout.count() - 1
         self.scroll_area_widget_layout.insertWidget(index, entry_group_box)
+        self.scroll_area.widget().updateGeometry()
         name_line_edit.clear()
 
         # Animated scroll to bottom
@@ -316,6 +318,7 @@ class CentralWidget(QWidget):
     def plus(self, field_pairs_layout: QVBoxLayout) -> None:
         field_pair = FieldPair()
         field_pairs_layout.addWidget(field_pair)
+        self.scroll_area.widget().updateGeometry()
 
     @Slot()
     def save(self, entry_group_box: QGroupBox) -> bool:
