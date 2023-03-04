@@ -18,6 +18,11 @@ BUTTON_ANIMATION_COLOR_STEP = 10
 
 SCROLL_TO_BOTTOM_ANIMATION_DURATION = 600
 
+STATUSBAR_TIMEOUT = 4000
+
+WINDOW_WIDTH = 450
+WINDOW_HEIGHT = 450
+
 
 class AnimatedPushButton(QPushButton):
     def __init__(self, text: str) -> None:
@@ -277,7 +282,7 @@ class CentralWidget(QWidget):
     def copy_password_to_clipboard(self, password_line_edit: QLineEdit) -> None:
         clipboard = QApplication.clipboard()
         clipboard.setText(password_line_edit.text())
-        self.main_window.statusBar().showMessage('Password copied to the clipboard', lock.STATUSBAR_TIMEOUT)
+        self.main_window.statusBar().showMessage('Password copied to the clipboard', STATUSBAR_TIMEOUT)
 
     @Slot()
     def create_new_entry(self, name_line_edit: QLineEdit) -> None:
@@ -342,12 +347,12 @@ class CentralWidget(QWidget):
                 is_empty = True
 
         if is_empty:
-            self.main_window.statusBar().showMessage('Some fields are empty', lock.STATUSBAR_TIMEOUT)
+            self.main_window.statusBar().showMessage('Some fields are empty', STATUSBAR_TIMEOUT)
             return False
 
         self.pm[entry_group_box.title()] = result
 
-        self.main_window.statusBar().showMessage('Saved', lock.STATUSBAR_TIMEOUT)
+        self.main_window.statusBar().showMessage('Saved', STATUSBAR_TIMEOUT)
         return True
 
     @Slot()
@@ -366,9 +371,9 @@ class CentralWidget(QWidget):
                 is_saved = False
 
         if is_saved:
-            self.main_window.statusBar().showMessage('Saved all', lock.STATUSBAR_TIMEOUT)
+            self.main_window.statusBar().showMessage('Saved all', STATUSBAR_TIMEOUT)
         else:
-            self.main_window.statusBar().showMessage('Some fields are empty', lock.STATUSBAR_TIMEOUT)
+            self.main_window.statusBar().showMessage('Some fields are empty', STATUSBAR_TIMEOUT)
 
     @Slot()
     def show_hide_password(self, password_line_edit: QLineEdit) -> None:
@@ -384,8 +389,8 @@ class MainWindow(QMainWindow):
 
         program_icon = QIcon(str(lock.PROGRAM_ICON_PATH))
 
-        self.setFixedWidth(lock.WINDOW_WIDTH)
-        self.setFixedHeight(lock.WINDOW_HEIGHT)
+        self.setFixedWidth(WINDOW_WIDTH)
+        self.setFixedHeight(WINDOW_HEIGHT)
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint)
         self.setWindowIcon(program_icon)
         self.setWindowTitle(lock.PROGRAM_NAME)
@@ -418,7 +423,7 @@ class PasswordWidget(QWidget):
 
         program_icon = QIcon(str(lock.PROGRAM_ICON_PATH))
 
-        self.setFixedWidth(lock.WINDOW_WIDTH)
+        self.setFixedWidth(WINDOW_WIDTH)
         self.setWindowIcon(program_icon)
         self.setWindowTitle(lock.PROGRAM_NAME)
 
