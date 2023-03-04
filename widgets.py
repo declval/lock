@@ -282,7 +282,7 @@ class CentralWidget(QWidget):
     def copy_password_to_clipboard(self, password_line_edit: QLineEdit) -> None:
         clipboard = QApplication.clipboard()
         clipboard.setText(password_line_edit.text())
-        self.main_window.statusBar().showMessage('Password copied to the clipboard', STATUSBAR_TIMEOUT)
+        self.main_window.statusBar().showMessage('Password copied to clipboard', STATUSBAR_TIMEOUT)
 
     @Slot()
     def create_new_entry(self, name_line_edit: QLineEdit) -> None:
