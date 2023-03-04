@@ -456,6 +456,8 @@ class PasswordWidget(QWidget):
             return
 
         self.hide()
+        layout_delete(self.layout())
+        self.deleteLater()
 
         main_window = MainWindow(pm)
         main_window.show()
