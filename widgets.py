@@ -2,9 +2,9 @@ from typing import Callable
 
 from PySide6.QtCore import Property, QEasingCurve, QEvent, QPropertyAnimation, QSize, Qt, Slot
 from PySide6.QtGui import QColor, QEnterEvent, QIcon, QPalette
-from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLineEdit,
-                               QMainWindow, QPushButton, QScrollArea, QStatusBar,
-                               QToolBar, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLabel,
+                               QLineEdit, QMainWindow, QPushButton, QScrollArea,
+                               QStatusBar, QToolBar, QVBoxLayout, QWidget)
 from nacl.exceptions import CryptoError
 
 from helpers import layout_delete, line_edit_reset_color, widget_center
@@ -431,9 +431,21 @@ class PasswordWidget(QWidget):
         self.setWindowIcon(program_icon)
         self.setWindowTitle(lock.PROGRAM_NAME)
 
-        layout = QHBoxLayout()
+        layout = QVBoxLayout()
         layout.setContentsMargins(MARGIN, MARGIN, MARGIN, MARGIN)
         layout.setSpacing(SPACING)
+
+        if lock.DATABASE_PATH.exists():
+            label = QLabel(f'<div>Enter a password for a database at {lock.DATABASE_PATH}</div>')
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            label.setProperty('class', 'info')
+            layout.addWidget(label)
+        else:
+            label = QLabel('<div style="margin-bottom: 10px;">Database does not exist yet</div>'
+                          f'<div style="font-size: 10px;">It will be created at {lock.DATABASE_PATH}</div>')
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            label.setProperty('class', 'info')
+            layout.addWidget(label)
 
         self.password_line_edit = QLineEdit()
         self.password_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
