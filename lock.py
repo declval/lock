@@ -1,5 +1,5 @@
+from getpass import getpass
 from pathlib import Path
-import getpass
 import hashlib
 import json
 import sys
@@ -63,9 +63,7 @@ class PasswordManager:
 
     @staticmethod
     def get_entry_value() -> dict[str, str]:
-        entry_value = {}
-        password = getpass.getpass()
-        entry_value['Password'] = password
+        entry_value = {'Password': getpass()}
         while True:
             entry_value_name = input('Enter name (leave empty to exit): ')
             if not entry_value_name:
