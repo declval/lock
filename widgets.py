@@ -141,17 +141,17 @@ class GeneratePassword(QWidget):
 
         layout = QVBoxLayout()
 
+        def wrapper_update_password(password_line_edit: QLineEdit) -> Callable[[], None]:
+            return lambda: self.update_password(password_line_edit)
+
         self.length_line_edit = QLineEdit()
         self.length_line_edit.setPlaceholderText('Password length')
+        self.length_line_edit.returnPressed.connect(wrapper_update_password(password_line_edit))
         self.length_line_edit.textChanged.connect(line_edit_reset_color(self.length_line_edit))
 
         layout.addWidget(self.length_line_edit)
 
         generate_push_button = AnimatedPushButton('Generate')
-
-        def wrapper_update_password(password_line_edit: QLineEdit) -> Callable[[], None]:
-            return lambda: self.update_password(password_line_edit)
-
         generate_push_button.clicked.connect(wrapper_update_password(password_line_edit))
 
         layout.addWidget(generate_push_button)
