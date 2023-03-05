@@ -16,6 +16,8 @@ SPACING = 10
 BUTTON_ANIMATION_DURATION = 200
 BUTTON_ANIMATION_COLOR_STEP = 10
 
+MAX_GENERATED_PASSWORD_LENGTH = 1024
+
 SCROLL_TO_BOTTOM_ANIMATION_DURATION = 600
 
 STATUSBAR_TIMEOUT = 4000
@@ -145,7 +147,7 @@ class GeneratePassword(QWidget):
             return lambda: self.update_password(password_line_edit)
 
         self.length_line_edit = QLineEdit()
-        self.length_line_edit.setPlaceholderText('Password length')
+        self.length_line_edit.setPlaceholderText(f'Password length (up to and including {MAX_GENERATED_PASSWORD_LENGTH})')
         self.length_line_edit.returnPressed.connect(wrapper_update_password(password_line_edit))
         self.length_line_edit.textChanged.connect(line_edit_reset_color(self.length_line_edit))
 
@@ -163,6 +165,10 @@ class GeneratePassword(QWidget):
         try:
             password_length = int(self.length_line_edit.text())
         except ValueError:
+            self.length_line_edit.setStyleSheet('color: #c15959;')
+            return
+
+        if password_length > MAX_GENERATED_PASSWORD_LENGTH:
             self.length_line_edit.setStyleSheet('color: #c15959;')
             return
 
