@@ -75,10 +75,8 @@ QToolBar {
 }
 
 .button-icon-only {
-    background-color: #ffffff;
-    border: none;
     height: 12px;
-    padding: 8px;
+    padding: 7px;
     width: 12px;
 }
 
