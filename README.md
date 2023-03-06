@@ -41,7 +41,21 @@ everything stored in the database.
    pip install -r requirements.txt
    ```
 
-5. Run the program without arguments to launch the GUI version. For command line usage information add `-h/--help`:
+5. Run the Qt Resource Compiler
+
+   On Windows (cmd.exe):
+
+   ```
+   .venv\Lib\site-packages\PySide6\rcc -g python icons.qrc -o icons_rc.py
+   ```
+
+   On Linux, macOS:
+
+   ```
+   .venv/bin/pyside6-rcc -g python icons.qrc -o icons_rc.py
+   ```
+
+6. Run the program without arguments to launch the GUI version. For command line usage information add `-h/--help`:
 
    On Windows (cmd.exe):
 
@@ -55,7 +69,7 @@ everything stored in the database.
    python3 lock.py
    ```
 
-6. Run the tests (Optional):
+7. Run the tests (Optional):
 
    On Windows (cmd.exe):
 

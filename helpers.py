@@ -49,8 +49,20 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def password_generate(length: int) -> str:
-    characters = string.ascii_letters + string.digits + string.punctuation
+def password_generate(length: int, *, lowercase: bool = False,
+                      uppercase: bool = False, digits: bool = False,
+                      punctuation: bool = False) -> str:
+    characters = ''
+    if lowercase:
+        characters += string.ascii_lowercase
+    if uppercase:
+        characters += string.ascii_uppercase
+    if digits:
+        characters += string.digits
+    if punctuation:
+        characters += string.punctuation
+    if not characters:
+        raise ValueError('At least one of the keyword-only arguments has to be True')
     return ''.join(secrets.choice(characters) for _ in range(length))
 
 

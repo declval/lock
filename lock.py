@@ -1,6 +1,7 @@
 from getpass import getpass
 from pathlib import Path
 import hashlib
+import icons_rc as _
 import json
 import sys
 

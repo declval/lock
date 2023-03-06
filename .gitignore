@@ -3,3 +3,4 @@
 __pycache__/
 build
 dist
+icons_rc.py
