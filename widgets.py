@@ -102,11 +102,6 @@ class FieldPair(QWidget):
             self.name_line_edit.setReadOnly(True)
             self.definition_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
             self.definition_line_edit.setPlaceholderText('Password')
-
-            spacer_push_button = QPushButton('')
-            spacer_push_button.setProperty('class', 'spacer')
-
-            layout.addWidget(spacer_push_button)
         else:
             self.definition_line_edit.setPlaceholderText('Definition')
 
@@ -288,11 +283,6 @@ class CentralWidget(QWidget):
                 show_push_button.clicked.connect(wrapper_show_hide_password(field_pair.definition_line_edit))
 
                 password_buttons_layout.addWidget(show_push_button)
-
-                spacer_push_button = QPushButton('')
-                spacer_push_button.setProperty('class', 'spacer')
-
-                password_buttons_layout.addWidget(spacer_push_button)
 
                 field_pairs_layout.insertLayout(1, password_buttons_layout)
             else:
