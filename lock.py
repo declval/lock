@@ -1,7 +1,6 @@
 from getpass import getpass
 from pathlib import Path
 import hashlib
-import icons_rc as _
 import json
 import sys
 
@@ -11,14 +10,13 @@ from nacl.exceptions import CryptoError
 from nacl.secret import SecretBox
 
 from helpers import error, file_read, file_write, parse_arguments, widget_center
+import resources_rc as _
 
 PROGRAM_NAME = 'lock'
 
 PROGRAM_DIR_PATH = Path(__file__).parent
-PROGRAM_ICON_PATH = PROGRAM_DIR_PATH / 'icon.png'
 DATABASE_PATH = Path.home() / f'.{PROGRAM_NAME}'
 STYLESHEET_PATH = PROGRAM_DIR_PATH / 'stylesheet.qss'
-FONT_PATH = PROGRAM_DIR_PATH / 'Roboto-Regular.ttf'
 
 JSON_SEPARATORS = (',', ':')
 JSON_SORT_KEYS = True
@@ -87,7 +85,7 @@ def main() -> None:
         import widgets
 
         app = QApplication([])
-        QFontDatabase.addApplicationFont(str(FONT_PATH))
+        QFontDatabase.addApplicationFont(':/roboto.ttf')
         stylesheet = file_read(STYLESHEET_PATH).decode()
         app.setStyleSheet(stylesheet)
         password_widget = widgets.PasswordWidget(app)

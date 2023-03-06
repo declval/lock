@@ -46,13 +46,13 @@ everything stored in the database.
    On Windows (cmd.exe):
 
    ```
-   .venv\Lib\site-packages\PySide6\rcc -g python icons.qrc -o icons_rc.py
+   .venv\Lib\site-packages\PySide6\rcc -g python resources.qrc -o resources_rc.py
    ```
 
    On Linux, macOS:
 
    ```
-   .venv/bin/pyside6-rcc -g python icons.qrc -o icons_rc.py
+   .venv/bin/pyside6-rcc -g python resources.qrc -o resources_rc.py
    ```
 
 6. Run the program without arguments to launch the GUI version. For command line usage information add `-h/--help`:
