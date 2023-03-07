@@ -188,11 +188,12 @@ class GeneratePassword(QWidget):
         layout.setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN)
         layout.setSpacing(LAYOUT_SPACING)
 
+        self.length_line_edit = QLineEdit()
+        self.length_line_edit.setPlaceholderText(f'Password length (up to and including {GENERATED_PASSWORD_LENGTH_MAX})')
+
         def wrapper_update_password(password_line_edit: QLineEdit) -> Callable[[], None]:
             return lambda: self.update_password(password_line_edit)
 
-        self.length_line_edit = QLineEdit()
-        self.length_line_edit.setPlaceholderText(f'Password length (up to and including {GENERATED_PASSWORD_LENGTH_MAX})')
         self.length_line_edit.returnPressed.connect(wrapper_update_password(password_line_edit))
         self.length_line_edit.textChanged.connect(line_edit_reset_color(self.length_line_edit))
 
