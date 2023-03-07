@@ -11,20 +11,20 @@ from nacl.exceptions import CryptoError
 from helpers import layout_delete, line_edit_reset_color, password_generate, widget_center
 import lock
 
-MARGIN = 20
-SPACING = 10
-
+BUTTON_ANIMATION_COLOR_DELTA = 10
 BUTTON_ANIMATION_DURATION = 200
-BUTTON_ANIMATION_COLOR_STEP = 10
 
-MAX_GENERATED_PASSWORD_LENGTH = 1024
+GENERATED_PASSWORD_LENGTH_MAX = 1024
 
-SCROLL_TO_BOTTOM_ANIMATION_DURATION = 600
+LAYOUT_MARGIN = 20
+LAYOUT_SPACING = 10
 
-STATUSBAR_TIMEOUT = 4000
+SCROLL_AREA_ANIMATION_DURATION = 600
 
-WINDOW_WIDTH = 480
+STATUS_BAR_MESSAGE_TIMEOUT = 4000
+
 WINDOW_HEIGHT = 480
+WINDOW_WIDTH = 480
 
 
 class AnimatedPushButton(QPushButton):
@@ -43,9 +43,9 @@ class AnimatedPushButton(QPushButton):
         if self.initial_start_color is None:
             self.initial_start_color = start_color
             self.initial_end_color = QColor(
-                self.initial_start_color.red() + BUTTON_ANIMATION_COLOR_STEP,
-                self.initial_start_color.green() + BUTTON_ANIMATION_COLOR_STEP,
-                self.initial_start_color.blue() + BUTTON_ANIMATION_COLOR_STEP
+                self.initial_start_color.red() + BUTTON_ANIMATION_COLOR_DELTA,
+                self.initial_start_color.green() + BUTTON_ANIMATION_COLOR_DELTA,
+                self.initial_start_color.blue() + BUTTON_ANIMATION_COLOR_DELTA
             )
         if lighten:
             end_color = self.initial_end_color
@@ -91,7 +91,7 @@ class FieldPair(QWidget):
 
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(SPACING)
+        layout.setSpacing(LAYOUT_SPACING)
 
         self.name_line_edit = QLineEdit(name)
         self.name_line_edit.setPlaceholderText('Name')
@@ -153,7 +153,7 @@ class FieldPair(QWidget):
     def copy_to_clipboard(self, definition_line_edit: QLineEdit) -> None:
         clipboard = QApplication.clipboard()
         clipboard.setText(definition_line_edit.text())
-        self.main_window.statusBar().showMessage('Copied to clipboard', STATUSBAR_TIMEOUT)
+        self.main_window.statusBar().showMessage('Copied to clipboard', STATUS_BAR_MESSAGE_TIMEOUT)
 
     @Slot()
     def minus(self, layout: QHBoxLayout) -> None:
@@ -182,14 +182,14 @@ class GeneratePassword(QWidget):
         self.setWindowTitle('Generate password')
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(MARGIN, MARGIN, MARGIN, MARGIN)
-        layout.setSpacing(SPACING)
+        layout.setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN)
+        layout.setSpacing(LAYOUT_SPACING)
 
         def wrapper_update_password(password_line_edit: QLineEdit) -> Callable[[], None]:
             return lambda: self.update_password(password_line_edit)
 
         self.length_line_edit = QLineEdit()
-        self.length_line_edit.setPlaceholderText(f'Password length (up to and including {MAX_GENERATED_PASSWORD_LENGTH})')
+        self.length_line_edit.setPlaceholderText(f'Password length (up to and including {GENERATED_PASSWORD_LENGTH_MAX})')
         self.length_line_edit.returnPressed.connect(wrapper_update_password(password_line_edit))
         self.length_line_edit.textChanged.connect(line_edit_reset_color(self.length_line_edit))
 
@@ -235,7 +235,7 @@ class GeneratePassword(QWidget):
 
         try:
             password_length = int(self.length_line_edit.text())
-            if password_length <= 0 or password_length > MAX_GENERATED_PASSWORD_LENGTH:
+            if password_length <= 0 or password_length > GENERATED_PASSWORD_LENGTH_MAX:
                 self.length_line_edit.setStyleSheet('color: #c15959;')
                 errors = True
         except ValueError:
@@ -278,11 +278,11 @@ class CentralWidget(QWidget):
         self.to_delete: list[str] = []
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(MARGIN, MARGIN, MARGIN, MARGIN)
-        layout.setSpacing(MARGIN)
+        layout.setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN)
+        layout.setSpacing(LAYOUT_MARGIN)
 
         create_layout = QHBoxLayout()
-        create_layout.setSpacing(SPACING)
+        create_layout.setSpacing(LAYOUT_SPACING)
 
         name_line_edit = QLineEdit()
         name_line_edit.setPlaceholderText('New entry name')
@@ -305,7 +305,7 @@ class CentralWidget(QWidget):
 
         self.scroll_area_widget_layout = QVBoxLayout()
         self.scroll_area_widget_layout.setContentsMargins(0, 0, 0, 0)
-        self.scroll_area_widget_layout.setSpacing(SPACING)
+        self.scroll_area_widget_layout.setSpacing(LAYOUT_SPACING)
 
         self.scroll_area_widget_layout.addStretch()
 
@@ -331,8 +331,8 @@ class CentralWidget(QWidget):
         entry_group_box = QGroupBox(entry_name)
 
         entry_layout = QVBoxLayout()
-        entry_layout.setContentsMargins(MARGIN, MARGIN, MARGIN, MARGIN)
-        entry_layout.setSpacing(SPACING)
+        entry_layout.setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN)
+        entry_layout.setSpacing(LAYOUT_SPACING)
 
         field_pairs_layout = QVBoxLayout()
 
@@ -409,11 +409,11 @@ class CentralWidget(QWidget):
         entry_names = [entry_group_box.title() for entry_group_box in self.findChildren(QGroupBox)]
         if not entry_name or not entry_name.isalnum() or entry_name in entry_names:
             if not entry_name:
-                self.main_window.statusBar().showMessage('Entry name is empty', STATUSBAR_TIMEOUT)
+                self.main_window.statusBar().showMessage('Entry name is empty', STATUS_BAR_MESSAGE_TIMEOUT)
             elif not entry_name.isalnum():
-                self.main_window.statusBar().showMessage('Entry name can only consist of alphanumeric characters', STATUSBAR_TIMEOUT)
+                self.main_window.statusBar().showMessage('Entry name can only consist of alphanumeric characters', STATUS_BAR_MESSAGE_TIMEOUT)
             elif entry_name in entry_names:
-                self.main_window.statusBar().showMessage(f'Entry {entry_name} already exists', STATUSBAR_TIMEOUT)
+                self.main_window.statusBar().showMessage(f'Entry {entry_name} already exists', STATUS_BAR_MESSAGE_TIMEOUT)
             else:
                 raise RuntimeError('Unhandled condition')
             name_line_edit.setStyleSheet('color: #c15959;')
@@ -433,7 +433,7 @@ class CentralWidget(QWidget):
                 vertical_scroll_bar = self.scroll_area.verticalScrollBar()
 
                 animation = QPropertyAnimation(vertical_scroll_bar, b'value', vertical_scroll_bar)
-                animation.setDuration(SCROLL_TO_BOTTOM_ANIMATION_DURATION)
+                animation.setDuration(SCROLL_AREA_ANIMATION_DURATION)
                 animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
                 animation.setEndValue(max)
                 animation.start()
@@ -480,12 +480,12 @@ class CentralWidget(QWidget):
                 is_empty = True
 
         if is_empty:
-            self.main_window.statusBar().showMessage('Some fields are empty', STATUSBAR_TIMEOUT)
+            self.main_window.statusBar().showMessage('Some fields are empty', STATUS_BAR_MESSAGE_TIMEOUT)
             return False
 
         self.pm[entry_group_box.title()] = result
 
-        self.main_window.statusBar().showMessage('Saved', STATUSBAR_TIMEOUT)
+        self.main_window.statusBar().showMessage('Saved', STATUS_BAR_MESSAGE_TIMEOUT)
         return True
 
     @Slot()
@@ -504,9 +504,9 @@ class CentralWidget(QWidget):
                 is_saved = False
 
         if is_saved:
-            self.main_window.statusBar().showMessage('Saved all', STATUSBAR_TIMEOUT)
+            self.main_window.statusBar().showMessage('Saved all', STATUS_BAR_MESSAGE_TIMEOUT)
         else:
-            self.main_window.statusBar().showMessage('Some fields are empty', STATUSBAR_TIMEOUT)
+            self.main_window.statusBar().showMessage('Some fields are empty', STATUS_BAR_MESSAGE_TIMEOUT)
 
 
 class MainWindow(QMainWindow):
@@ -554,8 +554,8 @@ class PasswordWidget(QWidget):
         self.setWindowTitle(lock.PROGRAM_NAME)
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(MARGIN, MARGIN, MARGIN, MARGIN)
-        layout.setSpacing(SPACING)
+        layout.setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN)
+        layout.setSpacing(LAYOUT_SPACING)
 
         continue_push_button_text = 'Decrypt'
 
