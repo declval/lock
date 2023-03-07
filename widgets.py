@@ -2,7 +2,7 @@ from typing import Callable
 
 from PySide6.QtCore import (Property, QEasingCurve, QEvent, QPropertyAnimation,
                             QSize, Qt, Slot)
-from PySide6.QtGui import QColor, QEnterEvent, QIcon, QPalette
+from PySide6.QtGui import QCloseEvent, QColor, QEnterEvent, QIcon, QPalette
 from PySide6.QtWidgets import (QApplication, QCheckBox, QGroupBox, QHBoxLayout,
                                QLabel, QLineEdit, QMainWindow, QPushButton,
                                QScrollArea, QStatusBar, QToolBar, QVBoxLayout,
@@ -555,6 +555,10 @@ class MainWindow(QMainWindow):
         status_bar.setSizeGripEnabled(False)
 
         self.setStatusBar(status_bar)
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        QApplication.closeAllWindows()
+        return super().closeEvent(event)
 
 
 class PasswordWidget(QWidget):
