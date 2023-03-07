@@ -3,20 +3,12 @@ import secrets
 import string
 import sys
 
-from PySide6.QtWidgets import QApplication, QLayout, QWidget
+from PySide6.QtWidgets import QApplication, QWidget
 
 
 def error(message: str) -> None:
     print(message, file=sys.stderr)
     sys.exit(1)
-
-
-def layout_delete(layout: QLayout) -> None:
-    for i in reversed(range(layout.count())):
-        item = layout.takeAt(i)
-        widget = item.widget()
-        widget.deleteLater()
-    layout.deleteLater()
 
 
 def parse_arguments() -> argparse.Namespace:

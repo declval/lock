@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QGroupBox, QHBoxLayout,
                                QWidget)
 from nacl.exceptions import CryptoError
 
-from helpers import layout_delete, password_generate, widget_center
+from helpers import password_generate, widget_center
 from lock import DATABASE_PATH, PROGRAM_NAME, PasswordManager
 
 BUTTON_ANIMATION_COLOR_DELTA = 10
@@ -392,11 +392,7 @@ class FieldPair(QWidget):
             minus_push_button.setIcon(self.minus_icon)
             minus_push_button.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
             minus_push_button.setProperty('class', 'button-icon-only')
-
-            def wrapper_minus(layout: QHBoxLayout) -> Callable[[], None]:
-                return lambda: self.minus(layout)
-
-            minus_push_button.clicked.connect(wrapper_minus(layout))
+            minus_push_button.clicked.connect(self.minus)
 
             layout.addWidget(minus_push_button)
 
@@ -409,8 +405,7 @@ class FieldPair(QWidget):
         self.main_window.statusBar().showMessage('Copied to clipboard', STATUS_BAR_MESSAGE_TIMEOUT)
 
     @Slot()
-    def minus(self, layout: QHBoxLayout) -> None:
-        layout_delete(layout)
+    def minus(self) -> None:
         self.deleteLater()
         self.updateGeometry()
 
@@ -521,9 +516,10 @@ class GeneratePassword(QWidget):
             digits=self.digits_checkbox.isChecked(),
             punctuation=self.punctuation_checkbox.isChecked()
         )
+
         password_line_edit.setText(password)
+
         self.hide()
-        layout_delete(self.layout())
         self.deleteLater()
 
 
@@ -619,7 +615,6 @@ class PasswordWidget(QWidget):
             return
 
         self.hide()
-        layout_delete(self.layout())
         self.deleteLater()
 
         main_window = MainWindow(pm)
