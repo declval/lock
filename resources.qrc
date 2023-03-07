@@ -9,5 +9,6 @@
         <file>plus.svg</file>
         <file>roboto.ttf</file>
         <file>show.svg</file>
+        <file>stylesheet.qss</file>
     </qresource>
 </RCC>
