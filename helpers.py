@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Callable
 import argparse
 import secrets
@@ -11,16 +10,6 @@ from PySide6.QtWidgets import QApplication, QLayout, QLineEdit, QWidget
 def error(message: str) -> None:
     print(message, file=sys.stderr)
     sys.exit(1)
-
-
-def file_read(file_path: Path) -> bytes:
-    with open(file_path, 'rb') as file:
-        return file.read()
-
-
-def file_write(file_path: Path, buffer: bytes) -> None:
-    with open(file_path, 'wb') as file:
-        file.write(buffer)
 
 
 def layout_delete(layout: QLayout) -> None:

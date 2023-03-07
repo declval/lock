@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QApplication
 from nacl.exceptions import CryptoError
 from nacl.secret import SecretBox
 
-from helpers import error, file_read, file_write, parse_arguments, widget_center
+from helpers import error, parse_arguments, widget_center
 import resources_rc as _
 
 PROGRAM_NAME = 'lock'
@@ -31,8 +31,8 @@ class PasswordManager:
         self.box = SecretBox(key)
         if not self.database_path.exists():
             ciphertext = self.encrypt('{}')
-            file_write(self.database_path, ciphertext)
-        ciphertext = file_read(self.database_path)
+            self.write(ciphertext)
+        ciphertext = self.read()
         plaintext = self.decrypt(ciphertext)
         self.contents = json.loads(plaintext)
 
@@ -43,13 +43,13 @@ class PasswordManager:
         self.contents[key] = value
         plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
         ciphertext = self.encrypt(plaintext)
-        file_write(self.database_path, ciphertext)
+        self.write(ciphertext)
 
     def __delitem__(self, key):
         del self.contents[key]
         plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
         ciphertext = self.encrypt(plaintext)
-        file_write(self.database_path, ciphertext)
+        self.write(ciphertext)
 
     def __iter__(self):
         for entry_name in self.contents:
@@ -60,6 +60,14 @@ class PasswordManager:
 
     def decrypt(self, ciphertext: bytes) -> str:
         return self.box.decrypt(ciphertext).decode()
+
+    def read(self) -> bytes:
+        with open(self.database_path, 'rb') as file:
+            return file.read()
+
+    def write(self, buffer) -> None:
+        with open(self.database_path, 'wb') as file:
+            file.write(buffer)
 
     @staticmethod
     def get_entry_value() -> dict[str, str]:

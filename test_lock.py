@@ -3,7 +3,6 @@ import os
 import secrets
 import unittest
 
-from helpers import file_read
 from lock import PasswordManager
 
 DATABASE_FILENAME_LENGTH = 4
@@ -18,7 +17,7 @@ class TestCreate(unittest.TestCase):
 
     def test_create_one_entry(self):
         self.pm['Google'] = {'Username': 'Alice', 'Password': '1234'}
-        ciphertext = file_read(self.database_path)
+        ciphertext = self.pm.read()
         got = self.pm.decrypt(ciphertext)
         expected = '{"Google":{"Password":"1234","Username":"Alice"}}'
         self.assertEqual(got, expected)
@@ -26,7 +25,7 @@ class TestCreate(unittest.TestCase):
     def test_create_two_entries(self):
         self.pm['Google'] = {'Username': 'Alice', 'Password': '1234'}
         self.pm['Microsoft'] = {'Username': 'Alice', 'Password': '5678'}
-        ciphertext = file_read(self.database_path)
+        ciphertext = self.pm.read()
         got = self.pm.decrypt(ciphertext)
         expected = '{"Google":{"Password":"1234","Username":"Alice"},"Microsoft":{"Password":"5678","Username":"Alice"}}'
         self.assertEqual(got, expected)
@@ -76,7 +75,7 @@ class TestDelete(unittest.TestCase):
     def test_delete(self):
         self.pm['Google'] = {'Username': 'Alice', 'Password': '1234'}
         del self.pm['Google']
-        ciphertext = file_read(self.database_path)
+        ciphertext = self.pm.read()
         got = self.pm.decrypt(ciphertext)
         expected = '{}'
         self.assertEqual(got, expected)
