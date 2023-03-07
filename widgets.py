@@ -81,194 +81,6 @@ class AnimatedPushButton(QPushButton):
     color = Property(QColor, get_color, set_color)
 
 
-class FieldPair(QWidget):
-    def __init__(self, main_window: QMainWindow, name: str = '', definition: str = '', password: bool = False) -> None:
-        super().__init__()
-
-        self.main_window = main_window
-
-        self.copy_icon = QIcon(':/copy.svg')
-        self.hide_icon = QIcon(':/hide.svg')
-        self.minus_icon = QIcon(':/minus.svg')
-        self.show_icon = QIcon(':/show.svg')
-
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(LAYOUT_SPACING)
-
-        self.name_line_edit = QLineEdit(name)
-        self.name_line_edit.setPlaceholderText('Name')
-        self.name_line_edit.textChanged.connect(line_edit_reset_color(self.name_line_edit))
-
-        layout.addWidget(self.name_line_edit)
-
-        self.definition_line_edit = QLineEdit(definition)
-        self.definition_line_edit.textChanged.connect(line_edit_reset_color(self.definition_line_edit))
-
-        layout.addWidget(self.definition_line_edit)
-
-        copy_push_button = AnimatedPushButton()
-        copy_push_button.setIcon(self.copy_icon)
-        copy_push_button.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
-        copy_push_button.setProperty('class', 'button-icon-only')
-
-        def wrapper_copy_to_clipboard(definition_line_edit: QLineEdit) -> Callable[[], None]:
-            return lambda: self.copy_to_clipboard(definition_line_edit)
-
-        copy_push_button.clicked.connect(wrapper_copy_to_clipboard(self.definition_line_edit))
-
-        layout.addWidget(copy_push_button)
-
-        if password:
-            self.name_line_edit.setReadOnly(True)
-            self.definition_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
-            self.definition_line_edit.setPlaceholderText('Password')
-
-            self.show_hide_push_button = AnimatedPushButton('')
-            self.show_hide_push_button.setIcon(self.show_icon)
-            self.show_hide_push_button.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
-            self.show_hide_push_button.setProperty('class', 'button-icon-only')
-
-            def wrapper_show_hide_password(password_line_edit: QLineEdit) -> Callable[[], None]:
-                return lambda: self.show_hide_password(password_line_edit)
-
-            self.show_hide_push_button.clicked.connect(wrapper_show_hide_password(self.definition_line_edit))
-
-            layout.addWidget(self.show_hide_push_button)
-        else:
-            self.definition_line_edit.setPlaceholderText('Definition')
-
-            minus_push_button = AnimatedPushButton()
-            minus_push_button.setIcon(self.minus_icon)
-            minus_push_button.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
-            minus_push_button.setProperty('class', 'button-icon-only')
-
-            def wrapper_minus(layout: QHBoxLayout) -> Callable[[], None]:
-                return lambda: self.minus(layout)
-
-            minus_push_button.clicked.connect(wrapper_minus(layout))
-
-            layout.addWidget(minus_push_button)
-
-        self.setLayout(layout)
-
-    @Slot()
-    def copy_to_clipboard(self, definition_line_edit: QLineEdit) -> None:
-        clipboard = QApplication.clipboard()
-        clipboard.setText(definition_line_edit.text())
-        self.main_window.statusBar().showMessage('Copied to clipboard', STATUS_BAR_MESSAGE_TIMEOUT)
-
-    @Slot()
-    def minus(self, layout: QHBoxLayout) -> None:
-        layout_delete(layout)
-        self.deleteLater()
-        self.updateGeometry()
-
-    @Slot()
-    def show_hide_password(self, password_line_edit: QLineEdit) -> None:
-        if password_line_edit.echoMode() == QLineEdit.EchoMode.Password:
-            password_line_edit.setEchoMode(QLineEdit.EchoMode.Normal)
-            self.show_hide_push_button.setIcon(self.hide_icon)
-        else:
-            password_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
-            self.show_hide_push_button.setIcon(self.show_icon)
-
-
-class GeneratePassword(QWidget):
-    def __init__(self, password_line_edit: QLineEdit) -> None:
-        super().__init__()
-
-        program_icon = QIcon(':/icon.png')
-
-        self.setFixedWidth(WINDOW_WIDTH)
-        self.setWindowIcon(program_icon)
-        self.setWindowTitle('Generate password')
-
-        layout = QVBoxLayout()
-        layout.setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN)
-        layout.setSpacing(LAYOUT_SPACING)
-
-        self.length_line_edit = QLineEdit()
-        self.length_line_edit.setPlaceholderText(f'Password length (up to and including {GENERATED_PASSWORD_LENGTH_MAX})')
-
-        def wrapper_update_password(password_line_edit: QLineEdit) -> Callable[[], None]:
-            return lambda: self.update_password(password_line_edit)
-
-        self.length_line_edit.returnPressed.connect(wrapper_update_password(password_line_edit))
-        self.length_line_edit.textChanged.connect(line_edit_reset_color(self.length_line_edit))
-
-        layout.addWidget(self.length_line_edit)
-
-        self.choose_label = QLabel('Choose what characters a password should consist of:')
-
-        layout.addWidget(self.choose_label)
-
-        self.lowercase_checkbox = QCheckBox('Lowercase letters')
-        self.lowercase_checkbox.setChecked(True)
-        self.lowercase_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
-
-        layout.addWidget(self.lowercase_checkbox)
-
-        self.uppercase_checkbox = QCheckBox('Uppercase letters')
-        self.uppercase_checkbox.setChecked(True)
-        self.uppercase_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
-
-        layout.addWidget(self.uppercase_checkbox)
-
-        self.digits_checkbox = QCheckBox('Digits')
-        self.digits_checkbox.setChecked(True)
-        self.digits_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
-
-        layout.addWidget(self.digits_checkbox)
-
-        self.punctuation_checkbox = QCheckBox('Punctuation')
-        self.punctuation_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
-
-        layout.addWidget(self.punctuation_checkbox)
-
-        generate_push_button = AnimatedPushButton('Generate')
-        generate_push_button.clicked.connect(wrapper_update_password(password_line_edit))
-
-        layout.addWidget(generate_push_button)
-
-        self.setLayout(layout)
-
-    @Slot()
-    def update_password(self, password_line_edit: QLineEdit) -> None:
-        errors = False
-
-        try:
-            password_length = int(self.length_line_edit.text())
-            if password_length <= 0 or password_length > GENERATED_PASSWORD_LENGTH_MAX:
-                self.length_line_edit.setStyleSheet('color: #c15959;')
-                errors = True
-        except ValueError:
-            self.length_line_edit.setStyleSheet('color: #c15959;')
-            errors = True
-
-        if (not self.lowercase_checkbox.isChecked()
-                and not self.uppercase_checkbox.isChecked()
-                and not self.digits_checkbox.isChecked()
-                and not self.punctuation_checkbox.isChecked()):
-            self.choose_label.setStyleSheet('color: #c15959;')
-            errors = True
-
-        if errors:
-            return
-
-        password = password_generate(
-            password_length,
-            lowercase=self.lowercase_checkbox.isChecked(),
-            uppercase=self.uppercase_checkbox.isChecked(),
-            digits=self.digits_checkbox.isChecked(),
-            punctuation=self.punctuation_checkbox.isChecked()
-        )
-        password_line_edit.setText(password)
-        self.hide()
-        layout_delete(self.layout())
-        self.deleteLater()
-
-
 class CentralWidget(QWidget):
 
     def __init__(self, pm: PasswordManager, main_window: QMainWindow) -> None:
@@ -510,6 +322,194 @@ class CentralWidget(QWidget):
             self.main_window.statusBar().showMessage('Saved all', STATUS_BAR_MESSAGE_TIMEOUT)
         else:
             self.main_window.statusBar().showMessage('Some fields are empty', STATUS_BAR_MESSAGE_TIMEOUT)
+
+
+class FieldPair(QWidget):
+    def __init__(self, main_window: QMainWindow, name: str = '', definition: str = '', password: bool = False) -> None:
+        super().__init__()
+
+        self.main_window = main_window
+
+        self.copy_icon = QIcon(':/copy.svg')
+        self.hide_icon = QIcon(':/hide.svg')
+        self.minus_icon = QIcon(':/minus.svg')
+        self.show_icon = QIcon(':/show.svg')
+
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(LAYOUT_SPACING)
+
+        self.name_line_edit = QLineEdit(name)
+        self.name_line_edit.setPlaceholderText('Name')
+        self.name_line_edit.textChanged.connect(line_edit_reset_color(self.name_line_edit))
+
+        layout.addWidget(self.name_line_edit)
+
+        self.definition_line_edit = QLineEdit(definition)
+        self.definition_line_edit.textChanged.connect(line_edit_reset_color(self.definition_line_edit))
+
+        layout.addWidget(self.definition_line_edit)
+
+        copy_push_button = AnimatedPushButton()
+        copy_push_button.setIcon(self.copy_icon)
+        copy_push_button.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
+        copy_push_button.setProperty('class', 'button-icon-only')
+
+        def wrapper_copy_to_clipboard(definition_line_edit: QLineEdit) -> Callable[[], None]:
+            return lambda: self.copy_to_clipboard(definition_line_edit)
+
+        copy_push_button.clicked.connect(wrapper_copy_to_clipboard(self.definition_line_edit))
+
+        layout.addWidget(copy_push_button)
+
+        if password:
+            self.name_line_edit.setReadOnly(True)
+            self.definition_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
+            self.definition_line_edit.setPlaceholderText('Password')
+
+            self.show_hide_push_button = AnimatedPushButton('')
+            self.show_hide_push_button.setIcon(self.show_icon)
+            self.show_hide_push_button.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
+            self.show_hide_push_button.setProperty('class', 'button-icon-only')
+
+            def wrapper_show_hide_password(password_line_edit: QLineEdit) -> Callable[[], None]:
+                return lambda: self.show_hide_password(password_line_edit)
+
+            self.show_hide_push_button.clicked.connect(wrapper_show_hide_password(self.definition_line_edit))
+
+            layout.addWidget(self.show_hide_push_button)
+        else:
+            self.definition_line_edit.setPlaceholderText('Definition')
+
+            minus_push_button = AnimatedPushButton()
+            minus_push_button.setIcon(self.minus_icon)
+            minus_push_button.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
+            minus_push_button.setProperty('class', 'button-icon-only')
+
+            def wrapper_minus(layout: QHBoxLayout) -> Callable[[], None]:
+                return lambda: self.minus(layout)
+
+            minus_push_button.clicked.connect(wrapper_minus(layout))
+
+            layout.addWidget(minus_push_button)
+
+        self.setLayout(layout)
+
+    @Slot()
+    def copy_to_clipboard(self, definition_line_edit: QLineEdit) -> None:
+        clipboard = QApplication.clipboard()
+        clipboard.setText(definition_line_edit.text())
+        self.main_window.statusBar().showMessage('Copied to clipboard', STATUS_BAR_MESSAGE_TIMEOUT)
+
+    @Slot()
+    def minus(self, layout: QHBoxLayout) -> None:
+        layout_delete(layout)
+        self.deleteLater()
+        self.updateGeometry()
+
+    @Slot()
+    def show_hide_password(self, password_line_edit: QLineEdit) -> None:
+        if password_line_edit.echoMode() == QLineEdit.EchoMode.Password:
+            password_line_edit.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.show_hide_push_button.setIcon(self.hide_icon)
+        else:
+            password_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
+            self.show_hide_push_button.setIcon(self.show_icon)
+
+
+class GeneratePassword(QWidget):
+    def __init__(self, password_line_edit: QLineEdit) -> None:
+        super().__init__()
+
+        program_icon = QIcon(':/icon.png')
+
+        self.setFixedWidth(WINDOW_WIDTH)
+        self.setWindowIcon(program_icon)
+        self.setWindowTitle('Generate password')
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN)
+        layout.setSpacing(LAYOUT_SPACING)
+
+        self.length_line_edit = QLineEdit()
+        self.length_line_edit.setPlaceholderText(f'Password length (up to and including {GENERATED_PASSWORD_LENGTH_MAX})')
+
+        def wrapper_update_password(password_line_edit: QLineEdit) -> Callable[[], None]:
+            return lambda: self.update_password(password_line_edit)
+
+        self.length_line_edit.returnPressed.connect(wrapper_update_password(password_line_edit))
+        self.length_line_edit.textChanged.connect(line_edit_reset_color(self.length_line_edit))
+
+        layout.addWidget(self.length_line_edit)
+
+        self.choose_label = QLabel('Choose what characters a password should consist of:')
+
+        layout.addWidget(self.choose_label)
+
+        self.lowercase_checkbox = QCheckBox('Lowercase letters')
+        self.lowercase_checkbox.setChecked(True)
+        self.lowercase_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
+
+        layout.addWidget(self.lowercase_checkbox)
+
+        self.uppercase_checkbox = QCheckBox('Uppercase letters')
+        self.uppercase_checkbox.setChecked(True)
+        self.uppercase_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
+
+        layout.addWidget(self.uppercase_checkbox)
+
+        self.digits_checkbox = QCheckBox('Digits')
+        self.digits_checkbox.setChecked(True)
+        self.digits_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
+
+        layout.addWidget(self.digits_checkbox)
+
+        self.punctuation_checkbox = QCheckBox('Punctuation')
+        self.punctuation_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
+
+        layout.addWidget(self.punctuation_checkbox)
+
+        generate_push_button = AnimatedPushButton('Generate')
+        generate_push_button.clicked.connect(wrapper_update_password(password_line_edit))
+
+        layout.addWidget(generate_push_button)
+
+        self.setLayout(layout)
+
+    @Slot()
+    def update_password(self, password_line_edit: QLineEdit) -> None:
+        errors = False
+
+        try:
+            password_length = int(self.length_line_edit.text())
+            if password_length <= 0 or password_length > GENERATED_PASSWORD_LENGTH_MAX:
+                self.length_line_edit.setStyleSheet('color: #c15959;')
+                errors = True
+        except ValueError:
+            self.length_line_edit.setStyleSheet('color: #c15959;')
+            errors = True
+
+        if (not self.lowercase_checkbox.isChecked()
+                and not self.uppercase_checkbox.isChecked()
+                and not self.digits_checkbox.isChecked()
+                and not self.punctuation_checkbox.isChecked()):
+            self.choose_label.setStyleSheet('color: #c15959;')
+            errors = True
+
+        if errors:
+            return
+
+        password = password_generate(
+            password_length,
+            lowercase=self.lowercase_checkbox.isChecked(),
+            uppercase=self.uppercase_checkbox.isChecked(),
+            digits=self.digits_checkbox.isChecked(),
+            punctuation=self.punctuation_checkbox.isChecked()
+        )
+        password_line_edit.setText(password)
+        self.hide()
+        layout_delete(self.layout())
+        self.deleteLater()
 
 
 class MainWindow(QMainWindow):
