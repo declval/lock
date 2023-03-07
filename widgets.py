@@ -9,8 +9,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QGroupBox, QHBoxLayout,
                                QWidget)
 from nacl.exceptions import CryptoError
 
-from helpers import (layout_delete, line_edit_reset_color, password_generate,
-                     widget_center)
+from helpers import layout_delete, password_generate, widget_center
 from lock import DATABASE_PATH, PROGRAM_NAME, PasswordManager
 
 BUTTON_ANIMATION_COLOR_DELTA = 10
@@ -32,6 +31,7 @@ WINDOW_WIDTH = 480
 
 
 class AnimatedPushButton(QPushButton):
+
     def __init__(self, text: str = '') -> None:
         super().__init__(text)
 
@@ -81,6 +81,15 @@ class AnimatedPushButton(QPushButton):
     color = Property(QColor, get_color, set_color)
 
 
+class LineEdit(QLineEdit):
+
+    def __init__(self, text: str = '') -> None:
+        super().__init__(text)
+
+        self.validation_state = ValidationState(self)
+        self.textChanged.connect(self.validation_state.set_valid)
+
+
 class CentralWidget(QWidget):
 
     def __init__(self, pm: PasswordManager, main_window: QMainWindow) -> None:
@@ -99,14 +108,13 @@ class CentralWidget(QWidget):
         create_layout = QHBoxLayout()
         create_layout.setSpacing(LAYOUT_SPACING)
 
-        name_line_edit = QLineEdit()
+        name_line_edit = LineEdit()
         name_line_edit.setPlaceholderText('New entry name')
 
-        def wrapper_create_new_entry(name_line_edit: QLineEdit) -> Callable[[], None]:
+        def wrapper_create_new_entry(name_line_edit: LineEdit) -> Callable[[], None]:
             return lambda: self.create_new_entry(name_line_edit)
 
         name_line_edit.returnPressed.connect(wrapper_create_new_entry(name_line_edit))
-        name_line_edit.textChanged.connect(line_edit_reset_color(name_line_edit))
 
         create_layout.addWidget(name_line_edit)
 
@@ -168,7 +176,7 @@ class CentralWidget(QWidget):
 
                 generate_push_button = AnimatedPushButton('Generate password')
 
-                def wrapper_open_generate_password(password_line_edit: QLineEdit) -> Callable[[], None]:
+                def wrapper_open_generate_password(password_line_edit: LineEdit) -> Callable[[], None]:
                     return lambda: self.open_generate_password(password_line_edit)
 
                 generate_push_button.clicked.connect(wrapper_open_generate_password(field_pair.definition_line_edit))
@@ -219,7 +227,7 @@ class CentralWidget(QWidget):
         return entry_group_box
 
     @Slot()
-    def create_new_entry(self, name_line_edit: QLineEdit) -> None:
+    def create_new_entry(self, name_line_edit: LineEdit) -> None:
         entry_name = name_line_edit.text()
         entry_names = [entry_group_box.title() for entry_group_box in self.findChildren(QGroupBox)]
         if not entry_name or not entry_name.isalnum() or entry_name in entry_names:
@@ -231,7 +239,7 @@ class CentralWidget(QWidget):
                 self.main_window.statusBar().showMessage(f'Entry {entry_name} already exists', STATUS_BAR_MESSAGE_TIMEOUT)
             else:
                 raise RuntimeError('Unhandled condition')
-            name_line_edit.setStyleSheet('color: #c15959;')
+            name_line_edit.validation_state.set_invalid()
             return
         entry_group_box = self.create_entry(entry_name, {'Password': ''})
         index =  self.scroll_area_widget_layout.count() - 1
@@ -263,7 +271,7 @@ class CentralWidget(QWidget):
         entry_group_box.deleteLater()
 
     @Slot()
-    def open_generate_password(self, password_line_edit: QLineEdit) -> None:
+    def open_generate_password(self, password_line_edit: LineEdit) -> None:
         self.generate_password = GeneratePassword(password_line_edit)
         self.generate_password.show()
         widget_center(self.generate_password)
@@ -284,10 +292,10 @@ class CentralWidget(QWidget):
 
         for field_pair in field_pairs:
             if not field_pair.name_line_edit.text():
-                field_pair.name_line_edit.setStyleSheet('color: #c15959;')
+                field_pair.name_line_edit.validation_state.set_invalid()
 
             if not field_pair.definition_line_edit.text():
-                field_pair.definition_line_edit.setStyleSheet('color: #c15959;')
+                field_pair.definition_line_edit.validation_state.set_invalid()
 
             if field_pair.name_line_edit.text() and field_pair.definition_line_edit.text():
                 result[field_pair.name_line_edit.text()] = field_pair.definition_line_edit.text()
@@ -325,6 +333,7 @@ class CentralWidget(QWidget):
 
 
 class FieldPair(QWidget):
+
     def __init__(self, main_window: QMainWindow, name: str = '', definition: str = '', password: bool = False) -> None:
         super().__init__()
 
@@ -339,14 +348,12 @@ class FieldPair(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(LAYOUT_SPACING)
 
-        self.name_line_edit = QLineEdit(name)
+        self.name_line_edit = LineEdit(name)
         self.name_line_edit.setPlaceholderText('Name')
-        self.name_line_edit.textChanged.connect(line_edit_reset_color(self.name_line_edit))
 
         layout.addWidget(self.name_line_edit)
 
-        self.definition_line_edit = QLineEdit(definition)
-        self.definition_line_edit.textChanged.connect(line_edit_reset_color(self.definition_line_edit))
+        self.definition_line_edit = LineEdit(definition)
 
         layout.addWidget(self.definition_line_edit)
 
@@ -355,7 +362,7 @@ class FieldPair(QWidget):
         copy_push_button.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
         copy_push_button.setProperty('class', 'button-icon-only')
 
-        def wrapper_copy_to_clipboard(definition_line_edit: QLineEdit) -> Callable[[], None]:
+        def wrapper_copy_to_clipboard(definition_line_edit: LineEdit) -> Callable[[], None]:
             return lambda: self.copy_to_clipboard(definition_line_edit)
 
         copy_push_button.clicked.connect(wrapper_copy_to_clipboard(self.definition_line_edit))
@@ -372,7 +379,7 @@ class FieldPair(QWidget):
             self.show_hide_push_button.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
             self.show_hide_push_button.setProperty('class', 'button-icon-only')
 
-            def wrapper_show_hide_password(password_line_edit: QLineEdit) -> Callable[[], None]:
+            def wrapper_show_hide_password(password_line_edit: LineEdit) -> Callable[[], None]:
                 return lambda: self.show_hide_password(password_line_edit)
 
             self.show_hide_push_button.clicked.connect(wrapper_show_hide_password(self.definition_line_edit))
@@ -396,7 +403,7 @@ class FieldPair(QWidget):
         self.setLayout(layout)
 
     @Slot()
-    def copy_to_clipboard(self, definition_line_edit: QLineEdit) -> None:
+    def copy_to_clipboard(self, definition_line_edit: LineEdit) -> None:
         clipboard = QApplication.clipboard()
         clipboard.setText(definition_line_edit.text())
         self.main_window.statusBar().showMessage('Copied to clipboard', STATUS_BAR_MESSAGE_TIMEOUT)
@@ -408,7 +415,7 @@ class FieldPair(QWidget):
         self.updateGeometry()
 
     @Slot()
-    def show_hide_password(self, password_line_edit: QLineEdit) -> None:
+    def show_hide_password(self, password_line_edit: LineEdit) -> None:
         if password_line_edit.echoMode() == QLineEdit.EchoMode.Password:
             password_line_edit.setEchoMode(QLineEdit.EchoMode.Normal)
             self.show_hide_push_button.setIcon(self.hide_icon)
@@ -417,8 +424,17 @@ class FieldPair(QWidget):
             self.show_hide_push_button.setIcon(self.show_icon)
 
 
+class Label(QLabel):
+
+    def __init__(self, text: str) -> None:
+        super().__init__(text)
+
+        self.validation_state = ValidationState(self)
+
+
 class GeneratePassword(QWidget):
-    def __init__(self, password_line_edit: QLineEdit) -> None:
+
+    def __init__(self, password_line_edit: LineEdit) -> None:
         super().__init__()
 
         program_icon = QIcon(':/icon.png')
@@ -431,41 +447,40 @@ class GeneratePassword(QWidget):
         layout.setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN)
         layout.setSpacing(LAYOUT_SPACING)
 
-        self.length_line_edit = QLineEdit()
+        self.length_line_edit = LineEdit()
         self.length_line_edit.setPlaceholderText(f'Password length (up to and including {GENERATED_PASSWORD_LENGTH_MAX})')
 
-        def wrapper_update_password(password_line_edit: QLineEdit) -> Callable[[], None]:
+        def wrapper_update_password(password_line_edit: LineEdit) -> Callable[[], None]:
             return lambda: self.update_password(password_line_edit)
 
         self.length_line_edit.returnPressed.connect(wrapper_update_password(password_line_edit))
-        self.length_line_edit.textChanged.connect(line_edit_reset_color(self.length_line_edit))
 
         layout.addWidget(self.length_line_edit)
 
-        self.choose_label = QLabel('Choose what characters a password should consist of:')
+        self.choose_label = Label('Choose what characters a password should consist of:')
 
         layout.addWidget(self.choose_label)
 
         self.lowercase_checkbox = QCheckBox('Lowercase letters')
         self.lowercase_checkbox.setChecked(True)
-        self.lowercase_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
+        self.lowercase_checkbox.stateChanged.connect(self.choose_label.validation_state.set_valid)
 
         layout.addWidget(self.lowercase_checkbox)
 
         self.uppercase_checkbox = QCheckBox('Uppercase letters')
         self.uppercase_checkbox.setChecked(True)
-        self.uppercase_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
+        self.uppercase_checkbox.stateChanged.connect(self.choose_label.validation_state.set_valid)
 
         layout.addWidget(self.uppercase_checkbox)
 
         self.digits_checkbox = QCheckBox('Digits')
         self.digits_checkbox.setChecked(True)
-        self.digits_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
+        self.digits_checkbox.stateChanged.connect(self.choose_label.validation_state.set_valid)
 
         layout.addWidget(self.digits_checkbox)
 
         self.punctuation_checkbox = QCheckBox('Punctuation')
-        self.punctuation_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
+        self.punctuation_checkbox.stateChanged.connect(self.choose_label.validation_state.set_valid)
 
         layout.addWidget(self.punctuation_checkbox)
 
@@ -477,23 +492,23 @@ class GeneratePassword(QWidget):
         self.setLayout(layout)
 
     @Slot()
-    def update_password(self, password_line_edit: QLineEdit) -> None:
+    def update_password(self, password_line_edit: LineEdit) -> None:
         errors = False
 
         try:
             password_length = int(self.length_line_edit.text())
             if password_length <= 0 or password_length > GENERATED_PASSWORD_LENGTH_MAX:
-                self.length_line_edit.setStyleSheet('color: #c15959;')
+                self.length_line_edit.validation_state.set_invalid()
                 errors = True
         except ValueError:
-            self.length_line_edit.setStyleSheet('color: #c15959;')
+            self.length_line_edit.validation_state.set_invalid()
             errors = True
 
         if (not self.lowercase_checkbox.isChecked()
                 and not self.uppercase_checkbox.isChecked()
                 and not self.digits_checkbox.isChecked()
                 and not self.punctuation_checkbox.isChecked()):
-            self.choose_label.setStyleSheet('color: #c15959;')
+            self.choose_label.validation_state.set_invalid()
             errors = True
 
         if errors:
@@ -513,6 +528,7 @@ class GeneratePassword(QWidget):
 
 
 class MainWindow(QMainWindow):
+
     def __init__(self, pm: PasswordManager) -> None:
         super().__init__()
 
@@ -575,11 +591,10 @@ class PasswordWidget(QWidget):
             label.setProperty('class', 'info')
             layout.addWidget(label)
 
-        self.password_line_edit = QLineEdit()
+        self.password_line_edit = LineEdit()
         self.password_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_line_edit.setPlaceholderText('Database password')
         self.password_line_edit.returnPressed.connect(self.run)
-        self.password_line_edit.textChanged.connect(line_edit_reset_color(self.password_line_edit))
 
         layout.addWidget(self.password_line_edit)
 
@@ -594,13 +609,13 @@ class PasswordWidget(QWidget):
     @Slot()
     def run(self) -> None:
         if not self.password_line_edit.text():
-            self.password_line_edit.setStyleSheet('color: #c15959;')
+            self.password_line_edit.validation_state.set_invalid()
             return
 
         try:
             pm = PasswordManager(DATABASE_PATH, self.password_line_edit.text())
         except CryptoError:
-            self.password_line_edit.setStyleSheet('color: #c15959;')
+            self.password_line_edit.validation_state.set_invalid()
             return
 
         self.hide()
@@ -610,3 +625,17 @@ class PasswordWidget(QWidget):
         main_window = MainWindow(pm)
         main_window.show()
         widget_center(main_window)
+
+
+class ValidationState():
+
+    def __init__(self, widget: Label | LineEdit) -> None:
+        self.widget = widget
+
+    def set_invalid(self) -> None:
+        self.widget.setProperty('class', 'invalid')
+        self.widget.setStyle(QApplication.style())
+
+    def set_valid(self) -> None:
+        self.widget.setProperty('class', '')
+        self.widget.setStyle(QApplication.style())

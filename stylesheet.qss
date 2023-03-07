@@ -71,7 +71,7 @@ QToolBar {
 }
 
 .button-warn {
-    color: #c15959;
+    color: #ff4040;
 }
 
 .button-icon-only {
@@ -83,4 +83,8 @@ QToolBar {
 .info {
     border-bottom: 1px solid #e6e6e6;
     padding: 0 0 10px;
+}
+
+.invalid {
+    color: #ff4040;
 }
