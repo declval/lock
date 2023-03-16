@@ -162,7 +162,7 @@ class CentralWidget(QtWidgets.QWidget):
             def wrapper_add(entries: QtWidgets.QVBoxLayout) -> None:
                 return lambda: self.add(entries)
             add.clicked.connect(wrapper_add(entries))
-            entries_and_buttons.addWidget(add)
+            entries_and_buttons.addWidget(add, 0, QtCore.Qt.AlignmentFlag.AlignLeft)
             save = QtWidgets.QPushButton('Save')
             def wrapper_save(group_box: QtWidgets.QGroupBox) -> None:
                 return lambda: self.save(group_box)
