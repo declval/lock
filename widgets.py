@@ -11,7 +11,7 @@ from nacl.exceptions import CryptoError
 
 from helpers import (layout_delete, line_edit_reset_color, password_generate,
                      widget_center)
-import lock
+from lock import DATABASE_PATH, PROGRAM_NAME, PasswordManager
 
 BUTTON_ANIMATION_COLOR_DELTA = 10
 BUTTON_ANIMATION_DURATION = 200
@@ -271,7 +271,7 @@ class GeneratePassword(QWidget):
 
 class CentralWidget(QWidget):
 
-    def __init__(self, pm: lock.PasswordManager, main_window: QMainWindow) -> None:
+    def __init__(self, pm: PasswordManager, main_window: QMainWindow) -> None:
         super().__init__()
 
         self.pm = pm
@@ -513,7 +513,7 @@ class CentralWidget(QWidget):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, pm: lock.PasswordManager) -> None:
+    def __init__(self, pm: PasswordManager) -> None:
         super().__init__()
 
         program_icon = QIcon(':/icon.png')
@@ -522,7 +522,7 @@ class MainWindow(QMainWindow):
         self.setFixedHeight(WINDOW_HEIGHT)
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint)
         self.setWindowIcon(program_icon)
-        self.setWindowTitle(lock.PROGRAM_NAME)
+        self.setWindowTitle(PROGRAM_NAME)
 
         central_widget = CentralWidget(pm, self)
 
@@ -554,7 +554,7 @@ class PasswordWidget(QWidget):
 
         self.setFixedWidth(WINDOW_WIDTH)
         self.setWindowIcon(program_icon)
-        self.setWindowTitle(lock.PROGRAM_NAME)
+        self.setWindowTitle(PROGRAM_NAME)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN)
@@ -562,15 +562,15 @@ class PasswordWidget(QWidget):
 
         continue_push_button_text = 'Decrypt'
 
-        if lock.DATABASE_PATH.exists():
-            label = QLabel(f'<div>Enter a password for a database at {lock.DATABASE_PATH}</div>')
+        if DATABASE_PATH.exists():
+            label = QLabel(f'<div>Enter a password for a database at {DATABASE_PATH}</div>')
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             label.setProperty('class', 'info')
             layout.addWidget(label)
         else:
             continue_push_button_text = 'Create'
             label = QLabel('<div style="margin-bottom: 10px;">Database does not exist yet</div>'
-                          f'<div style="font-size: 10px;">It will be created at {lock.DATABASE_PATH}</div>')
+                          f'<div style="font-size: 10px;">It will be created at {DATABASE_PATH}</div>')
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             label.setProperty('class', 'info')
             layout.addWidget(label)
@@ -598,7 +598,7 @@ class PasswordWidget(QWidget):
             return
 
         try:
-            pm = lock.PasswordManager(lock.DATABASE_PATH, self.password_line_edit.text())
+            pm = PasswordManager(DATABASE_PATH, self.password_line_edit.text())
         except CryptoError:
             self.password_line_edit.setStyleSheet('color: #c15959;')
             return
