@@ -2,7 +2,7 @@
 
 `lock` is a very simple password manager written in Python.
 
-It uses PyNaCl library's symmetrical encryption functionality to encrypt
+It uses PyNaCl library's symmetric encryption functionality to encrypt
 everything stored in the database.
 
 ## Installation
