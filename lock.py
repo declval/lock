@@ -28,32 +28,37 @@ WINDOW_WIDTH = 450
 WINDOW_HEIGHT = 450
 
 
-class EntryDoesNotExistError(Exception):
-    pass
-
-
-class EntryExistsError(Exception):
-    pass
-
-
 class PasswordManager:
 
-    def __init__(self, database_path: Path, gui: bool, password: str | None = None) -> None:
+    def __init__(self, database_path: Path, password: str) -> None:
         self.database_path = database_path
-        self.gui = gui
-        if password is None:
-            password = getpass.getpass('Database password: ')
-            if len(password) == 0:
-                error('Database password can not be empty')
         key = hashlib.blake2b(password.encode(), digest_size=32).digest()
         self.box = SecretBox(key)
         if not self.database_path.exists():
-            print(f'Creating new database {self.database_path}')
             ciphertext = self.encrypt('{}')
             file_write(self.database_path, ciphertext)
         ciphertext = file_read(self.database_path)
         plaintext = self.decrypt(ciphertext)
         self.contents = json.loads(plaintext)
+
+    def __getitem__(self, key: str) -> dict[str, str]:
+        return self.contents[key]
+
+    def __setitem__(self, key: str, value: dict[str, str]) -> None:
+        self.contents[key] = value
+        plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
+        ciphertext = self.encrypt(plaintext)
+        file_write(self.database_path, ciphertext)
+
+    def __delitem__(self, key):
+        del self.contents[key]
+        plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
+        ciphertext = self.encrypt(plaintext)
+        file_write(self.database_path, ciphertext)
+
+    def __iter__(self):
+        for entry_name in self.contents:
+            yield entry_name
 
     def encrypt(self, plaintext: str) -> bytes:
         return self.box.encrypt(plaintext.encode())
@@ -61,8 +66,9 @@ class PasswordManager:
     def decrypt(self, ciphertext: bytes) -> str:
         return self.box.decrypt(ciphertext).decode()
 
-    def read_entry_value(self) -> dict[str, str]:
-        entry_value: dict[str, str] = {}
+    @staticmethod
+    def get_entry_value() -> dict[str, str]:
+        entry_value = {}
         password = getpass.getpass()
         entry_value['Password'] = password
         while True:
@@ -77,61 +83,6 @@ class PasswordManager:
                 break
             entry_value[entry_value_name] = entry_value_definition
         return entry_value
-
-    def create(self, entry_name: str, entry_value: dict[str, str] | None = None) -> None:
-        if self.contents.get(entry_name) is not None:
-            raise EntryExistsError(entry_name)
-        if entry_value is None:
-            entry_value = self.read_entry_value()
-        self.contents[entry_name] = entry_value
-        plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
-        ciphertext = self.encrypt(plaintext)
-        file_write(self.database_path, ciphertext)
-
-    def read(self, entry_name: str | None = None) -> dict[str, dict[str, str]]:
-        if entry_name is None:
-            if not self.gui:
-                for entry_name, entry_value in self.contents.items():
-                    print(f'{entry_name}:')
-                    for name, definition in entry_value.items():
-                        print(f'    {name}: "{definition}"')
-            return self.contents
-        else:
-            if self.contents.get(entry_name) is None:
-                raise EntryDoesNotExistError(entry_name)
-            if not self.gui:
-                print(f'{entry_name}:')
-                for name, definition in self.contents[entry_name].items():
-                    print(f'    {name}: "{definition}"')
-            return {entry_name: self.contents[entry_name]}
-
-    def update(self, entry_name: str, entry_value: dict[str, str] | None = None) -> None:
-        if self.contents.get(entry_name) is None:
-            raise EntryDoesNotExistError(entry_name)
-        if entry_value is None:
-            if self.gui:
-                raise ValueError(entry_value)
-            entry_value = self.read_entry_value()
-        self.contents[entry_name] = entry_value
-        plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
-        ciphertext = self.encrypt(plaintext)
-        file_write(self.database_path, ciphertext)
-
-    def delete(self, entry_name: str, interactive: bool = True) -> None:
-        if self.contents.get(entry_name) is None:
-            raise EntryDoesNotExistError(entry_name)
-        if interactive:
-            reply = input(f'Are you sure you want to delete an entry {entry_name}? ')
-        else:
-            reply = 'y'
-        match reply.lower():
-            case 'yes' | 'y':
-                del self.contents[entry_name]
-                plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
-                ciphertext = self.encrypt(plaintext)
-                file_write(self.database_path, ciphertext)
-            case _:
-                pass
 
 
 def main() -> None:
@@ -152,8 +103,12 @@ def main() -> None:
 
     pm: PasswordManager | None = None
 
+    password = getpass.getpass('Database password: ')
+    if not password:
+        error('Database password can not be empty')
+
     try:
-        pm = PasswordManager(DATABASE_PATH, False)
+        pm = PasswordManager(DATABASE_PATH, password)
     except CryptoError:
         error('Decryption failed')
 
@@ -161,25 +116,34 @@ def main() -> None:
 
     match args.subcommand:
         case 'create':
-            try:
-                pm.create(args.entry)
-            except EntryExistsError as e:
-                error(f'Entry {e} already exists in the database')
+            if args.entry in pm:
+                error(f'Entry {args.entry} already exists in the database')
+            pm[args.entry] = PasswordManager.get_entry_value()
         case 'read':
-            try:
-                pm.read(args.entry)
-            except EntryDoesNotExistError as e:
-                error(f'Entry {e} does not exist in the database')
+            if args.entry:
+                if args.entry not in pm:
+                    error(f'Entry {args.entry} does not exist in the database')
+                print(f'{args.entry}:')
+                for name, definition in pm[args.entry].items():
+                    print(f'    {name}: "{definition}"')
+            else:
+                for entry_name in pm:
+                    print(f'{entry_name}:')
+                    for name, definition in pm[entry_name].items():
+                        print(f'    {name}: "{definition}"')
         case 'update':
-            try:
-                pm.update(args.entry)
-            except EntryDoesNotExistError as e:
-                error(f'Entry {e} does not exist in the database')
+            if args.entry not in pm:
+                error(f'Entry {args.entry} does not exist in the database')
+            pm[args.entry] = PasswordManager.get_entry_value()
         case 'delete':
-            try:
-                pm.delete(args.entry)
-            except EntryDoesNotExistError as e:
-                error(f'Entry {e} does not exist in the database')
+            if args.entry not in pm:
+                error(f'Entry {args.entry} does not exist in the database')
+            reply = input(f'Are you sure you want to delete entry {args.entry}? ')
+            match reply.lower():
+                case 'yes' | 'y':
+                    del pm[args.entry]
+                case _:
+                    pass
         case _:
             pass
 

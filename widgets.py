@@ -130,7 +130,6 @@ class CentralWidget(QWidget):
         self.pm = pm
         self.main_window = main_window
 
-        self.contents = self.pm.read()
         self.icon_size = QSize(12, 12)
         self.plus_icon = QIcon(str(lock.PROGRAM_DIR_PATH / 'plus-solid.svg'))
         self.to_delete: list[str] = []
@@ -167,8 +166,8 @@ class CentralWidget(QWidget):
 
         self.scroll_area_widget_layout.addStretch()
 
-        for entry_name, entry_value in self.contents.items():
-            entry_group_box = self.create_entry(entry_name, entry_value)
+        for entry_name in self.pm:
+            entry_group_box = self.create_entry(entry_name, self.pm[entry_name])
             index =  self.scroll_area_widget_layout.count() - 1
             self.scroll_area_widget_layout.insertWidget(index, entry_group_box)
 
@@ -282,7 +281,7 @@ class CentralWidget(QWidget):
     def create_new_entry(self, name_line_edit: QLineEdit) -> None:
         entry_name = name_line_edit.text()
         entry_names = [entry_group_box.title() for entry_group_box in self.findChildren(QGroupBox)]
-        if not entry_name or (entry_name in self.contents and entry_name in entry_names) or entry_name in entry_names:
+        if not entry_name or (entry_name in self.pm and entry_name in entry_names) or entry_name in entry_names:
             name_line_edit.setStyleSheet('color: #c15959;')
             return
         entry_group_box = self.create_entry(entry_name, {'Password': ''})
@@ -347,10 +346,7 @@ class CentralWidget(QWidget):
             self.main_window.statusBar().showMessage('Some fields are empty', lock.STATUSBAR_TIMEOUT)
             return False
 
-        try:
-            self.pm.update(entry_group_box.title(), result)
-        except lock.EntryDoesNotExistError:
-            self.pm.create(entry_group_box.title(), result)
+        self.pm[entry_group_box.title()] = result
 
         self.main_window.statusBar().showMessage('Saved', lock.STATUSBAR_TIMEOUT)
         return True
@@ -359,8 +355,8 @@ class CentralWidget(QWidget):
     def save_all(self):
         for entry_name in self.to_delete:
             try:
-                self.pm.delete(entry_name, False)
-            except lock.EntryDoesNotExistError:
+                del self.pm[entry_name]
+            except KeyError:
                 pass
         self.to_delete.clear()
 
@@ -454,7 +450,7 @@ class PasswordWidget(QWidget):
             return
 
         try:
-            pm = lock.PasswordManager(lock.DATABASE_PATH, True, self.password_line_edit.text())
+            pm = lock.PasswordManager(lock.DATABASE_PATH, self.password_line_edit.text())
         except CryptoError:
             self.password_line_edit.setStyleSheet('color: #c15959;')
             return
