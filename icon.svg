@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   sodipodi:docname="logo.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="1.4540751"
+     inkscape:cx="361.05425"
+     inkscape:cy="539.17435"
+     inkscape:window-width="1920"
+     inkscape:window-height="974"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g1852" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g1852">
+      <g
+         id="g3754">
+        <rect
+           style="fill:#252525;fill-opacity:1;stroke-width:0.275448"
+           id="rect788"
+           width="71.953606"
+           height="41.33506"
+           x="69.023193"
+           y="140.9185"
+           ry="5.1204333"
+           rx="0" />
+        <path
+           id="path4649"
+           style="fill:#ffdc75;fill-opacity:1;stroke-width:0.264583"
+           d="m 104.99974,114.74644 a 25.64304,25.64304 0 0 0 -25.642878,25.64288 h 11.864909 a 13.778349,13.778349 0 0 1 13.777969,-13.77797 13.778349,13.778349 0 0 1 13.77849,13.77797 h 11.86491 a 25.64304,25.64304 0 0 0 -25.6434,-25.64288 z" />
+        <text
+           xml:space="preserve"
+           style="font-size:16.9333px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.365;stroke-dasharray:none;stroke-opacity:1"
+           x="78.963394"
+           y="167.74171"
+           id="text344"><tspan
+             sodipodi:role="line"
+             id="tspan342"
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:16.9333px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.365;stroke-dasharray:none;stroke-opacity:1"
+             x="78.963394"
+             y="167.74171">LOCK</tspan></text>
+      </g>
+    </g>
+  </g>
+</svg>

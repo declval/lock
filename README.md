@@ -1,4 +1,4 @@
-# lock
+<img src="icon.png" width="180px">
 
 `lock` is a very simple password manager written in Python.
 
