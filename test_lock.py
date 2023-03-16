@@ -9,7 +9,7 @@ class TestCreate(unittest.TestCase):
 
     def setUp(self):
         self.database_path = f'.{secrets.token_hex(4)}'
-        self.pm = lock.PasswordManager(self.database_path, '1234')
+        self.pm = lock.PasswordManager(self.database_path, False, '1234')
 
     def test_create(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
@@ -39,7 +39,7 @@ class TestRead(unittest.TestCase):
 
     def setUp(self):
         self.database_path = f'.{secrets.token_hex(4)}'
-        self.pm = lock.PasswordManager(self.database_path, '1234')
+        self.pm = lock.PasswordManager(self.database_path, False, '1234')
 
     def test_read_one_entry(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
@@ -71,7 +71,7 @@ class TestUpdate(unittest.TestCase):
 
     def setUp(self):
         self.database_path = f'.{secrets.token_hex(4)}'
-        self.pm = lock.PasswordManager(self.database_path, '1234')
+        self.pm = lock.PasswordManager(self.database_path, False, '1234')
 
     def test_update(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
@@ -95,7 +95,7 @@ class TestDelete(unittest.TestCase):
 
     def setUp(self):
         self.database_path = f'.{secrets.token_hex(4)}'
-        self.pm = lock.PasswordManager(self.database_path, '1234')
+        self.pm = lock.PasswordManager(self.database_path, False, '1234')
 
     def test_delete(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
