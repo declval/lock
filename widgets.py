@@ -351,7 +351,7 @@ class CentralWidget(QWidget):
 
                 password_buttons_layout.addStretch()
 
-                generate_push_button = AnimatedPushButton('Generate')
+                generate_push_button = AnimatedPushButton('Generate password')
 
                 def wrapper_open_generate_password(password_line_edit: QLineEdit) -> Callable[[], None]:
                     return lambda: self.open_generate_password(password_line_edit)
