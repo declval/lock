@@ -214,6 +214,8 @@ class CentralWidget(QtWidgets.QWidget):
             return lambda: self.delete(entry)
         delete.clicked.connect(wrapper_delete(entry))
         entry_layout.addWidget(delete)
+        # Necessary to get rid of UI flicker when fields are removed with the minus button
+        entry_layout.addStretch()
         entry.setLayout(entry_layout)
         return entry
 
