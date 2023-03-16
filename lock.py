@@ -247,7 +247,8 @@ class CentralWidget(QWidget):
     @Slot()
     def create_new_entry(self, create_name: QLineEdit) -> None:
         entry_name = create_name.text()
-        if not entry_name or entry_name in self.contents:
+        entry_names = [entry.title() for entry in self.findChildren(QGroupBox)]
+        if not entry_name or entry_name in self.contents or entry_name in entry_names:
             create_name.setStyleSheet('background-color: #d61c54;')
             return
         create_name.setStyleSheet('background-color: #ffffff;')
