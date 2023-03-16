@@ -105,6 +105,8 @@ class PasswordManager:
         if self.contents.get(entry_key) is None:
             raise EntryDoesNotExistError(entry_key)
         if entry_value is None:
+            if self.gui:
+                raise ValueError(entry_value)
             entry_value = self.read_entry_value()
         self.contents[entry_key] = entry_value
         plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
