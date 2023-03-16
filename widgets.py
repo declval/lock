@@ -44,10 +44,13 @@ class AnimatedPushButton(QPushButton):
         start_color = self.get_color()
         if self.initial_start_color is None:
             self.initial_start_color = start_color
+            red = self.initial_start_color.red() + BUTTON_ANIMATION_COLOR_DELTA
+            green = self.initial_start_color.green() + BUTTON_ANIMATION_COLOR_DELTA
+            blue = self.initial_start_color.blue() + BUTTON_ANIMATION_COLOR_DELTA
             self.initial_end_color = QColor(
-                self.initial_start_color.red() + BUTTON_ANIMATION_COLOR_DELTA,
-                self.initial_start_color.green() + BUTTON_ANIMATION_COLOR_DELTA,
-                self.initial_start_color.blue() + BUTTON_ANIMATION_COLOR_DELTA
+                red if red <= 255 else 255,
+                green if green <= 255 else 255,
+                blue if blue <= 255 else 255
             )
         if lighten:
             end_color = self.initial_end_color
