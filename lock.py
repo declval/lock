@@ -332,7 +332,6 @@ def open_main_window(pm: PasswordManager) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='lock is a very simple password manager written in Python.')
-    parser.add_argument('-g', action='store_true', help='start GUI version of the program')
 
     subparsers = parser.add_subparsers(dest='subcommand', title='subcommands')
 
@@ -351,10 +350,6 @@ def main() -> None:
     args = parser.parse_args()
 
     if len(sys.argv) == 1:
-        parser.print_help()
-        sys.exit(0)
-
-    if args.g:
         app = QtWidgets.QApplication()
         QtGui.QFontDatabase.addApplicationFont(FONT_PATH)
         with open(STYLESHEET_PATH) as file:
