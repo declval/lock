@@ -1,6 +1,7 @@
 from typing import Callable
 
-from PySide6.QtCore import Property, QEasingCurve, QEvent, QPropertyAnimation, QSize, Qt, Slot
+from PySide6.QtCore import (Property, QEasingCurve, QEvent, QPropertyAnimation,
+                            QSize, Qt, Slot)
 from PySide6.QtGui import QColor, QEnterEvent, QIcon, QPalette
 from PySide6.QtWidgets import (QApplication, QCheckBox, QGroupBox, QHBoxLayout,
                                QLabel, QLineEdit, QMainWindow, QPushButton,
@@ -8,7 +9,8 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QGroupBox, QHBoxLayout,
                                QWidget)
 from nacl.exceptions import CryptoError
 
-from helpers import layout_delete, line_edit_reset_color, password_generate, widget_center
+from helpers import (layout_delete, line_edit_reset_color, password_generate,
+                     widget_center)
 import lock
 
 BUTTON_ANIMATION_COLOR_DELTA = 10
