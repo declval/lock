@@ -244,8 +244,10 @@ class CentralWidget(QtWidgets.QWidget):
     def add(self, entries: QtWidgets.QVBoxLayout) -> None:
         entry = QtWidgets.QHBoxLayout()
         name = QtWidgets.QLineEdit()
+        name.setPlaceholderText('Name')
         entry.addWidget(name)
         description = QtWidgets.QLineEdit()
+        description.setPlaceholderText('Description')
         entry.addWidget(description)
         remove = QtWidgets.QPushButton()
         remove.setIcon(self.remove_icon)
