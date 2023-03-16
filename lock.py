@@ -1,13 +1,15 @@
+from typing import Callable
 import getpass
 import hashlib
 import json
 import os.path
 import sys
-import typing
 
-from PySide6 import QtCore, QtGui, QtWidgets
-import nacl.exceptions
-import nacl.secret
+from PySide6.QtCore import QSize, Qt, Slot
+from PySide6.QtGui import QFontDatabase, QIcon
+from PySide6.QtWidgets import QApplication, QGroupBox, QHBoxLayout, QLayout, QLineEdit, QMainWindow, QPushButton, QVBoxLayout, QWidget
+from nacl.exceptions import CryptoError
+from nacl.secret import SecretBox
 
 from helpers import error, file_read, file_write, layout_delete, parse_arguments
 
@@ -39,7 +41,7 @@ class PasswordManager:
             if len(password) == 0:
                 error('Database password can not be empty')
         key = hashlib.blake2b(password.encode(), digest_size=32).digest()
-        self.box = nacl.secret.SecretBox(key)
+        self.box = SecretBox(key)
         if not os.path.exists(self.database_path):
             print(f'Creating new database {self.database_path}')
             ciphertext = self.encrypt('{}')
@@ -127,23 +129,23 @@ class PasswordManager:
                 pass
 
 
-class CentralWidget(QtWidgets.QWidget):
+class CentralWidget(QWidget):
 
     def __init__(self, pm: PasswordManager) -> None:
         super().__init__()
         self.pm = pm
         self.contents = self.pm.read()
-        self.plus_icon = QtGui.QIcon(os.path.join(os.path.dirname(__file__), 'plus-solid.svg'))
-        self.minus_icon = QtGui.QIcon(os.path.join(os.path.dirname(__file__), 'minus-solid.svg'))
-        layout = QtWidgets.QVBoxLayout()
-        create_layout = QtWidgets.QHBoxLayout()
-        create_name = QtWidgets.QLineEdit()
+        self.plus_icon = QIcon(os.path.join(os.path.dirname(__file__), 'plus-solid.svg'))
+        self.minus_icon = QIcon(os.path.join(os.path.dirname(__file__), 'minus-solid.svg'))
+        layout = QVBoxLayout()
+        create_layout = QHBoxLayout()
+        create_name = QLineEdit()
         create_name.setPlaceholderText('New entry name')
-        def wrapper_create_new_entry(create_name: QtWidgets.QLineEdit) -> typing.Callable[[], None]:
+        def wrapper_create_new_entry(create_name: QLineEdit) -> Callable[[], None]:
             return lambda: self.create_new_entry(create_name)
         create_name.returnPressed.connect(wrapper_create_new_entry(create_name))
         create_layout.addWidget(create_name)
-        create_button = QtWidgets.QPushButton('Create')
+        create_button = QPushButton('Create')
         create_button.setProperty('class', 'button-alt')
         create_button.clicked.connect(wrapper_create_new_entry(create_name))
         create_layout.addWidget(create_button)
@@ -153,28 +155,28 @@ class CentralWidget(QtWidgets.QWidget):
             layout.addWidget(entry)
         self.setLayout(layout)
 
-    def create_entry(self, entry_name: str, entry_value: dict[str, str]) -> QtWidgets.QGroupBox:
-        entry = QtWidgets.QGroupBox(entry_name)
-        entry_layout = QtWidgets.QVBoxLayout()
-        field_pairs_layout = QtWidgets.QVBoxLayout()
+    def create_entry(self, entry_name: str, entry_value: dict[str, str]) -> QGroupBox:
+        entry = QGroupBox(entry_name)
+        entry_layout = QVBoxLayout()
+        field_pairs_layout = QVBoxLayout()
         for entry_value_name, entry_value_definition in entry_value.items():
-            field_pair_layout = QtWidgets.QHBoxLayout()
-            name = QtWidgets.QLineEdit(entry_value_name)
+            field_pair_layout = QHBoxLayout()
+            name = QLineEdit(entry_value_name)
             field_pair_layout.addWidget(name)
-            definition = QtWidgets.QLineEdit(entry_value_definition)
+            definition = QLineEdit(entry_value_definition)
             buttons_layout = None
             if entry_value_name == 'Password':
                 name.setReadOnly(True)
-                definition.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
-                buttons_layout = QtWidgets.QHBoxLayout()
+                definition.setEchoMode(QLineEdit.EchoMode.Password)
+                buttons_layout = QHBoxLayout()
                 buttons_layout.addStretch()
-                copy = QtWidgets.QPushButton('Copy')
-                def wrapper_copy_password_to_clipboard(password: QtWidgets.QLineEdit) -> typing.Callable[[], None]:
+                copy = QPushButton('Copy')
+                def wrapper_copy_password_to_clipboard(password: QLineEdit) -> Callable[[], None]:
                     return lambda: self.copy_password_to_clipboard(password)
                 copy.clicked.connect(wrapper_copy_password_to_clipboard(definition))
                 buttons_layout.addWidget(copy)
-                show = QtWidgets.QPushButton('Show')
-                def wrapper_show_hide_password(password: QtWidgets.QLineEdit) -> typing.Callable[[], None]:
+                show = QPushButton('Show')
+                def wrapper_show_hide_password(password: QLineEdit) -> Callable[[], None]:
                     return lambda: self.show_hide_password(password)
                 show.clicked.connect(wrapper_show_hide_password(definition))
                 buttons_layout.addWidget(show)
@@ -183,11 +185,11 @@ class CentralWidget(QtWidgets.QWidget):
             if entry_value_name == 'Password':
                 field_pair_layout.addSpacing(38)
             else:
-                minus = QtWidgets.QPushButton()
+                minus = QPushButton()
                 minus.setIcon(self.minus_icon)
-                minus.setIconSize(QtCore.QSize(12, 12))
+                minus.setIconSize(QSize(12, 12))
                 minus.setProperty('class', 'button-icon-only')
-                def wrapper_minus(field_pair_layout: QtWidgets.QHBoxLayout) -> typing.Callable[[], None]:
+                def wrapper_minus(field_pair_layout: QHBoxLayout) -> Callable[[], None]:
                     return lambda: self.minus(field_pair_layout)
                 minus.clicked.connect(wrapper_minus(field_pair_layout))
                 field_pair_layout.addWidget(minus)
@@ -195,22 +197,22 @@ class CentralWidget(QtWidgets.QWidget):
             if buttons_layout is not None:
                 field_pairs_layout.addLayout(buttons_layout)
         entry_layout.addLayout(field_pairs_layout)
-        plus = QtWidgets.QPushButton()
+        plus = QPushButton()
         plus.setIcon(self.plus_icon)
-        plus.setIconSize(QtCore.QSize(12, 12))
+        plus.setIconSize(QSize(12, 12))
         plus.setProperty('class', 'button-icon-only')
-        def wrapper_plus(field_pairs_layout: QtWidgets.QVBoxLayout) -> typing.Callable[[], None]:
+        def wrapper_plus(field_pairs_layout: QVBoxLayout) -> Callable[[], None]:
             return lambda: self.plus(field_pairs_layout)
         plus.clicked.connect(wrapper_plus(field_pairs_layout))
-        entry_layout.addWidget(plus, 0, QtCore.Qt.AlignmentFlag.AlignRight)
-        save = QtWidgets.QPushButton('Save')
-        def wrapper_save(entry: QtWidgets.QGroupBox) -> typing.Callable[[], None]:
+        entry_layout.addWidget(plus, 0, Qt.AlignmentFlag.AlignRight)
+        save = QPushButton('Save')
+        def wrapper_save(entry: QGroupBox) -> Callable[[], None]:
             return lambda: self.save(entry)
         save.clicked.connect(wrapper_save(entry))
         entry_layout.addWidget(save)
-        delete = QtWidgets.QPushButton('Delete')
+        delete = QPushButton('Delete')
         delete.setProperty('class', 'button-warn')
-        def wrapper_delete(entry: QtWidgets.QGroupBox) -> typing.Callable[[], None]:
+        def wrapper_delete(entry: QGroupBox) -> Callable[[], None]:
             return lambda: self.delete(entry)
         delete.clicked.connect(wrapper_delete(entry))
         entry_layout.addWidget(delete)
@@ -219,13 +221,13 @@ class CentralWidget(QtWidgets.QWidget):
         entry.setLayout(entry_layout)
         return entry
 
-    @QtCore.Slot()
-    def copy_password_to_clipboard(self, password: QtWidgets.QLineEdit) -> None:
-        clipboard = QtWidgets.QApplication.clipboard()
+    @Slot()
+    def copy_password_to_clipboard(self, password: QLineEdit) -> None:
+        clipboard = QApplication.clipboard()
         clipboard.setText(password.text())
 
-    @QtCore.Slot()
-    def create_new_entry(self, create_name: QtWidgets.QLineEdit) -> None:
+    @Slot()
+    def create_new_entry(self, create_name: QLineEdit) -> None:
         entry_name = create_name.text()
         if not entry_name or entry_name in self.contents:
             create_name.setStyleSheet('background-color: #d61c54;')
@@ -235,37 +237,37 @@ class CentralWidget(QtWidgets.QWidget):
         group_box = self.create_entry(entry_name, self.contents[entry_name])
         self.layout().addWidget(group_box)
 
-    @QtCore.Slot()
-    def delete(self, group_box: QtWidgets.QGroupBox) -> None:
+    @Slot()
+    def delete(self, group_box: QGroupBox) -> None:
         self.pm.delete(group_box.title(), interactive=False)
         group_box.deleteLater()
 
-    @QtCore.Slot()
-    def minus(self, field_pair_layout: QtWidgets.QHBoxLayout) -> None:
+    @Slot()
+    def minus(self, field_pair_layout: QHBoxLayout) -> None:
         layout_delete(field_pair_layout)
 
-    @QtCore.Slot()
-    def plus(self, field_pairs_layout: QtWidgets.QVBoxLayout) -> None:
-        field_pair_layout = QtWidgets.QHBoxLayout()
-        name = QtWidgets.QLineEdit()
+    @Slot()
+    def plus(self, field_pairs_layout: QVBoxLayout) -> None:
+        field_pair_layout = QHBoxLayout()
+        name = QLineEdit()
         name.setPlaceholderText('Name')
         field_pair_layout.addWidget(name)
-        definition = QtWidgets.QLineEdit()
+        definition = QLineEdit()
         definition.setPlaceholderText('Definition')
         field_pair_layout.addWidget(definition)
-        minus = QtWidgets.QPushButton()
+        minus = QPushButton()
         minus.setIcon(self.minus_icon)
-        minus.setIconSize(QtCore.QSize(12, 12))
+        minus.setIconSize(QSize(12, 12))
         minus.setProperty('class', 'button-icon-only')
-        def wrapper_minus(field_pair_layout: QtWidgets.QHBoxLayout) -> typing.Callable[[], None]:
+        def wrapper_minus(field_pair_layout: QHBoxLayout) -> Callable[[], None]:
             return lambda: self.minus(field_pair_layout)
         minus.clicked.connect(wrapper_minus(field_pair_layout))
         field_pair_layout.addWidget(minus)
         field_pairs_layout.addLayout(field_pair_layout)
 
-    @QtCore.Slot()
-    def save(self, group_box: QtWidgets.QGroupBox) -> None:
-        line_edits = group_box.findChildren(QtWidgets.QLineEdit)
+    @Slot()
+    def save(self, group_box: QGroupBox) -> None:
+        line_edits = group_box.findChildren(QLineEdit)
         result = {}
         for i in range(0, len(line_edits), 2):
             name = line_edits[i]
@@ -283,35 +285,35 @@ class CentralWidget(QtWidgets.QWidget):
         except EntryDoesNotExistError:
             self.pm.create(group_box.title(), result)
 
-    @QtCore.Slot()
-    def show_hide_password(self, password: QtWidgets.QLineEdit) -> None:
-        if password.echoMode() == QtWidgets.QLineEdit.EchoMode.Password:
-            password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
+    @Slot()
+    def show_hide_password(self, password: QLineEdit) -> None:
+        if password.echoMode() == QLineEdit.EchoMode.Password:
+            password.setEchoMode(QLineEdit.EchoMode.Normal)
         else:
-            password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+            password.setEchoMode(QLineEdit.EchoMode.Password)
 
 
-class PasswordWindow(QtWidgets.QWidget):
+class PasswordWindow(QWidget):
 
     def __init__(self) -> None:
         super().__init__()
-        layout = QtWidgets.QHBoxLayout()
-        self.password = QtWidgets.QLineEdit()
-        self.password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+        layout = QHBoxLayout()
+        self.password = QLineEdit()
+        self.password.setEchoMode(QLineEdit.EchoMode.Password)
         self.password.setPlaceholderText('Database password')
         self.password.returnPressed.connect(self.run)
         layout.addWidget(self.password)
-        button = QtWidgets.QPushButton('Continue')
+        button = QPushButton('Continue')
         button.setProperty('class', 'button-alt')
         button.clicked.connect(self.run)
         layout.addWidget(button)
         self.setLayout(layout)
 
-    @QtCore.Slot()
+    @Slot()
     def run(self) -> None:
         try:
             pm = PasswordManager(DATABASE_PATH, True, self.password.text())
-        except nacl.exceptions.CryptoError:
+        except CryptoError:
             self.password.setStyleSheet('background-color: #d61c54;')
             return
         self.hide()
@@ -327,8 +329,8 @@ def open_password_window() -> None:
 
 def open_main_window(pm: PasswordManager) -> None:
     global main_window
-    main_window = QtWidgets.QMainWindow()
-    main_window.layout().setSizeConstraint(QtWidgets.QLayout.SizeConstraint.SetFixedSize)
+    main_window = QMainWindow()
+    main_window.layout().setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
     central_widget = CentralWidget(pm)
     main_window.setCentralWidget(central_widget)
     main_window.setWindowTitle(PROGRAM_NAME)
@@ -339,8 +341,8 @@ def main() -> None:
     args = parse_arguments()
 
     if len(sys.argv) == 1:
-        app = QtWidgets.QApplication()
-        QtGui.QFontDatabase.addApplicationFont(FONT_PATH)
+        app = QApplication()
+        QFontDatabase.addApplicationFont(FONT_PATH)
         stylesheet = file_read(STYLESHEET_PATH).decode()
         app.setStyleSheet(stylesheet)
         open_password_window()
@@ -348,7 +350,7 @@ def main() -> None:
 
     try:
         pm = PasswordManager(DATABASE_PATH, False)
-    except nacl.exceptions.CryptoError:
+    except CryptoError:
         error('Decryption failed')
 
     match args.subcommand:
