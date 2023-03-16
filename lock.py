@@ -74,55 +74,55 @@ class PasswordManager:
             entry_value[entry_value_name] = entry_value_definition
         return entry_value
 
-    def create(self, entry_key: str, entry_value: dict[str, str] | None = None) -> None:
-        if self.contents.get(entry_key) is not None:
-            raise EntryExistsError(entry_key)
+    def create(self, entry_name: str, entry_value: dict[str, str] | None = None) -> None:
+        if self.contents.get(entry_name) is not None:
+            raise EntryExistsError(entry_name)
         if entry_value is None:
             entry_value = self.read_entry_value()
-        self.contents[entry_key] = entry_value
+        self.contents[entry_name] = entry_value
         plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
         ciphertext = self.encrypt(plaintext)
         file_write(self.database_path, ciphertext)
 
-    def read(self, entry_key: str | None = None) -> dict[str, dict[str, str]]:
-        if entry_key is None:
+    def read(self, entry_name: str | None = None) -> dict[str, dict[str, str]]:
+        if entry_name is None:
             if not self.gui:
-                for entry_key, entry_value in self.contents.items():
-                    print(f'{entry_key}:')
+                for entry_name, entry_value in self.contents.items():
+                    print(f'{entry_name}:')
                     for name, definition in entry_value.items():
                         print(f'    {name}: "{definition}"')
             return self.contents
         else:
-            if self.contents.get(entry_key) is None:
-                raise EntryDoesNotExistError(entry_key)
+            if self.contents.get(entry_name) is None:
+                raise EntryDoesNotExistError(entry_name)
             if not self.gui:
-                print(f'{entry_key}:')
-                for name, definition in self.contents[entry_key].items():
+                print(f'{entry_name}:')
+                for name, definition in self.contents[entry_name].items():
                     print(f'    {name}: "{definition}"')
-            return {entry_key: self.contents[entry_key]}
+            return {entry_name: self.contents[entry_name]}
 
-    def update(self, entry_key: str, entry_value: dict[str, str] | None = None) -> None:
-        if self.contents.get(entry_key) is None:
-            raise EntryDoesNotExistError(entry_key)
+    def update(self, entry_name: str, entry_value: dict[str, str] | None = None) -> None:
+        if self.contents.get(entry_name) is None:
+            raise EntryDoesNotExistError(entry_name)
         if entry_value is None:
             if self.gui:
                 raise ValueError(entry_value)
             entry_value = self.read_entry_value()
-        self.contents[entry_key] = entry_value
+        self.contents[entry_name] = entry_value
         plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
         ciphertext = self.encrypt(plaintext)
         file_write(self.database_path, ciphertext)
 
-    def delete(self, entry_key: str, interactive: bool = True) -> None:
-        if self.contents.get(entry_key) is None:
-            raise EntryDoesNotExistError(entry_key)
+    def delete(self, entry_name: str, interactive: bool = True) -> None:
+        if self.contents.get(entry_name) is None:
+            raise EntryDoesNotExistError(entry_name)
         if interactive:
-            reply = input(f'Are you sure you want to delete an entry {entry_key}? ')
+            reply = input(f'Are you sure you want to delete an entry {entry_name}? ')
         else:
             reply = 'y'
         match reply.lower():
             case 'yes' | 'y':
-                del self.contents[entry_key]
+                del self.contents[entry_name]
                 plaintext = json.dumps(self.contents, separators=JSON_SEPARATORS, sort_keys=JSON_SORT_KEYS)
                 ciphertext = self.encrypt(plaintext)
                 file_write(self.database_path, ciphertext)
@@ -136,100 +136,89 @@ class CentralWidget(QtWidgets.QWidget):
         super().__init__()
         self.pm = pm
         self.contents = self.pm.read()
-        self.add_icon = QtGui.QIcon(os.path.join(os.path.dirname(__file__), 'plus-solid.svg'))
-        self.remove_icon = QtGui.QIcon(os.path.join(os.path.dirname(__file__), 'minus-solid.svg'))
-        layout = QtWidgets.QVBoxLayout(self)
-        create = QtWidgets.QHBoxLayout()
-        create_line_edit = QtWidgets.QLineEdit()
-        create_line_edit.setPlaceholderText('New entry name')
-        def wrapper_create_new_entry(create_line_edit: QtWidgets.QLineEdit) -> typing.Callable[[], None]:
-            return lambda: self.create_new_entry(create_line_edit)
-        create_line_edit.returnPressed.connect(wrapper_create_new_entry(create_line_edit))
-        create.addWidget(create_line_edit)
+        self.plus_icon = QtGui.QIcon(os.path.join(os.path.dirname(__file__), 'plus-solid.svg'))
+        self.minus_icon = QtGui.QIcon(os.path.join(os.path.dirname(__file__), 'minus-solid.svg'))
+        layout = QtWidgets.QVBoxLayout()
+        create_layout = QtWidgets.QHBoxLayout()
+        create_name = QtWidgets.QLineEdit()
+        create_name.setPlaceholderText('New entry name')
+        def wrapper_create_new_entry(create_name: QtWidgets.QLineEdit) -> typing.Callable[[], None]:
+            return lambda: self.create_new_entry(create_name)
+        create_name.returnPressed.connect(wrapper_create_new_entry(create_name))
+        create_layout.addWidget(create_name)
         create_button = QtWidgets.QPushButton('Create')
         create_button.setProperty('class', 'button-alt')
-        create_button.clicked.connect(wrapper_create_new_entry(create_line_edit))
-        create.addWidget(create_button)
-        layout.addLayout(create)
-        for entry_key, entry_value in self.contents.items():
-            group_box = self.create_entry(entry_key, entry_value)
-            layout.addWidget(group_box)
+        create_button.clicked.connect(wrapper_create_new_entry(create_name))
+        create_layout.addWidget(create_button)
+        layout.addLayout(create_layout)
+        for entry_name, entry_value in self.contents.items():
+            entry = self.create_entry(entry_name, entry_value)
+            layout.addWidget(entry)
         self.setLayout(layout)
 
-    def create_entry(self, entry_key: str, entry_value: dict[str, str]) -> QtWidgets.QGroupBox:
-            group_box = QtWidgets.QGroupBox(entry_key)
-            entries_and_buttons = QtWidgets.QVBoxLayout()
-            entries = QtWidgets.QVBoxLayout()
-            for entry_value_name, entry_value_description in entry_value.items():
-                entry = QtWidgets.QHBoxLayout()
-                name = QtWidgets.QLineEdit(entry_value_name)
-                entry.addWidget(name)
-                description = QtWidgets.QLineEdit(entry_value_description)
-                buttons = None
-                if entry_value_name == 'Password':
-                    name.setReadOnly(True)
-                    description.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
-                    buttons = QtWidgets.QHBoxLayout()
-                    buttons.addStretch()
-                    copy = QtWidgets.QPushButton('Copy')
-                    def wrapper_copy_password_to_clipboard(password: QtWidgets.QLineEdit) -> typing.Callable[[], None]:
-                        return lambda: self.copy_password_to_clipboard(password)
-                    copy.clicked.connect(wrapper_copy_password_to_clipboard(description))
-                    buttons.addWidget(copy)
-                    show = QtWidgets.QPushButton('Show')
-                    def wrapper_show_hide_password(password: QtWidgets.QLineEdit) -> typing.Callable[[], None]:
-                        return lambda: self.show_hide_password(password)
-                    show.clicked.connect(wrapper_show_hide_password(description))
-                    buttons.addWidget(show)
-                    buttons.addSpacing(38)
-                entry.addWidget(description)
-                if entry_value_name != 'Password':
-                    remove = QtWidgets.QPushButton()
-                    remove.setIcon(self.remove_icon)
-                    remove.setIconSize(QtCore.QSize(12, 12))
-                    remove.setProperty('class', 'button-icon-only')
-                    def wrapper_remove(entry: QtWidgets.QHBoxLayout) -> typing.Callable[[], None]:
-                        return lambda: self.remove(entry)
-                    remove.clicked.connect(wrapper_remove(entry))
-                    entry.addWidget(remove)
-                else:
-                    entry.addSpacing(38)
-                entries.addLayout(entry)
-                if buttons is not None:
-                    entries.addLayout(buttons)
-            entries_and_buttons.addLayout(entries)
-            add = QtWidgets.QPushButton()
-            add.setIcon(self.add_icon)
-            add.setIconSize(QtCore.QSize(12, 12))
-            add.setProperty('class', 'button-icon-only')
-            def wrapper_add(entries: QtWidgets.QVBoxLayout) -> typing.Callable[[], None]:
-                return lambda: self.add(entries)
-            add.clicked.connect(wrapper_add(entries))
-            entries_and_buttons.addWidget(add, 0, QtCore.Qt.AlignmentFlag.AlignRight)
-            save = QtWidgets.QPushButton('Save')
-            def wrapper_save(group_box: QtWidgets.QGroupBox) -> typing.Callable[[], None]:
-                return lambda: self.save(group_box)
-            save.clicked.connect(wrapper_save(group_box))
-            entries_and_buttons.addWidget(save)
-            delete = QtWidgets.QPushButton('Delete')
-            delete.setProperty('class', 'button-warn')
-            def wrapper_delete(group_box: QtWidgets.QGroupBox) -> typing.Callable[[], None]:
-                return lambda: self.delete(group_box)
-            delete.clicked.connect(wrapper_delete(group_box))
-            entries_and_buttons.addWidget(delete)
-            group_box.setLayout(entries_and_buttons)
-            return group_box
-
-    @QtCore.Slot()
-    def create_new_entry(self, create_line_edit: QtWidgets.QLineEdit) -> None:
-        title = create_line_edit.text()
-        if not title or title in self.contents:
-            create_line_edit.setStyleSheet('background-color: #d61c54;')
-            return
-        create_line_edit.setStyleSheet('background-color: #ffffff;')
-        self.contents[title] = {'Password': ''}
-        group_box = self.create_entry(title, self.contents[title])
-        self.layout().addWidget(group_box)
+    def create_entry(self, entry_name: str, entry_value: dict[str, str]) -> QtWidgets.QGroupBox:
+        entry = QtWidgets.QGroupBox(entry_name)
+        entry_layout = QtWidgets.QVBoxLayout()
+        field_pairs_layout = QtWidgets.QVBoxLayout()
+        for entry_value_name, entry_value_definition in entry_value.items():
+            field_pair_layout = QtWidgets.QHBoxLayout()
+            name = QtWidgets.QLineEdit(entry_value_name)
+            field_pair_layout.addWidget(name)
+            definition = QtWidgets.QLineEdit(entry_value_definition)
+            buttons_layout = None
+            if entry_value_name == 'Password':
+                name.setReadOnly(True)
+                definition.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+                buttons_layout = QtWidgets.QHBoxLayout()
+                buttons_layout.addStretch()
+                copy = QtWidgets.QPushButton('Copy')
+                def wrapper_copy_password_to_clipboard(password: QtWidgets.QLineEdit) -> typing.Callable[[], None]:
+                    return lambda: self.copy_password_to_clipboard(password)
+                copy.clicked.connect(wrapper_copy_password_to_clipboard(definition))
+                buttons_layout.addWidget(copy)
+                show = QtWidgets.QPushButton('Show')
+                def wrapper_show_hide_password(password: QtWidgets.QLineEdit) -> typing.Callable[[], None]:
+                    return lambda: self.show_hide_password(password)
+                show.clicked.connect(wrapper_show_hide_password(definition))
+                buttons_layout.addWidget(show)
+                buttons_layout.addSpacing(38)
+            field_pair_layout.addWidget(definition)
+            if entry_value_name == 'Password':
+                field_pair_layout.addSpacing(38)
+            else:
+                minus = QtWidgets.QPushButton()
+                minus.setIcon(self.minus_icon)
+                minus.setIconSize(QtCore.QSize(12, 12))
+                minus.setProperty('class', 'button-icon-only')
+                def wrapper_minus(field_pair_layout: QtWidgets.QHBoxLayout) -> typing.Callable[[], None]:
+                    return lambda: self.minus(field_pair_layout)
+                minus.clicked.connect(wrapper_minus(field_pair_layout))
+                field_pair_layout.addWidget(minus)
+            field_pairs_layout.addLayout(field_pair_layout)
+            if buttons_layout is not None:
+                field_pairs_layout.addLayout(buttons_layout)
+        entry_layout.addLayout(field_pairs_layout)
+        plus = QtWidgets.QPushButton()
+        plus.setIcon(self.plus_icon)
+        plus.setIconSize(QtCore.QSize(12, 12))
+        plus.setProperty('class', 'button-icon-only')
+        def wrapper_plus(field_pairs_layout: QtWidgets.QVBoxLayout) -> typing.Callable[[], None]:
+            return lambda: self.plus(field_pairs_layout)
+        plus.clicked.connect(wrapper_plus(field_pairs_layout))
+        entry_layout.addWidget(plus, 0, QtCore.Qt.AlignmentFlag.AlignRight)
+        save = QtWidgets.QPushButton('Save')
+        def wrapper_save(entry: QtWidgets.QGroupBox) -> typing.Callable[[], None]:
+            return lambda: self.save(entry)
+        save.clicked.connect(wrapper_save(entry))
+        entry_layout.addWidget(save)
+        delete = QtWidgets.QPushButton('Delete')
+        delete.setProperty('class', 'button-warn')
+        def wrapper_delete(entry: QtWidgets.QGroupBox) -> typing.Callable[[], None]:
+            return lambda: self.delete(entry)
+        delete.clicked.connect(wrapper_delete(entry))
+        entry_layout.addWidget(delete)
+        entry.setLayout(entry_layout)
+        return entry
 
     @QtCore.Slot()
     def copy_password_to_clipboard(self, password: QtWidgets.QLineEdit) -> None:
@@ -237,49 +226,58 @@ class CentralWidget(QtWidgets.QWidget):
         clipboard.setText(password.text())
 
     @QtCore.Slot()
-    def show_hide_password(self, password: QtWidgets.QLineEdit) -> None:
-        if password.echoMode() == QtWidgets.QLineEdit.EchoMode.Password:
-            password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
-        else:
-            password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+    def create_new_entry(self, create_name: QtWidgets.QLineEdit) -> None:
+        entry_name = create_name.text()
+        if not entry_name or entry_name in self.contents:
+            create_name.setStyleSheet('background-color: #d61c54;')
+            return
+        create_name.setStyleSheet('background-color: #ffffff;')
+        self.contents[entry_name] = {'Password': ''}
+        group_box = self.create_entry(entry_name, self.contents[entry_name])
+        self.layout().addWidget(group_box)
 
     @QtCore.Slot()
-    def remove(self, entry: QtWidgets.QHBoxLayout) -> None:
-        for i in range(entry.count()):
-            entry.itemAt(i).widget().deleteLater()
+    def delete(self, group_box: QtWidgets.QGroupBox) -> None:
+        self.pm.delete(group_box.title(), interactive=False)
+        group_box.hide()
 
     @QtCore.Slot()
-    def add(self, entries: QtWidgets.QVBoxLayout) -> None:
-        entry = QtWidgets.QHBoxLayout()
+    def minus(self, field_pair_layout: QtWidgets.QHBoxLayout) -> None:
+        for i in range(field_pair_layout.count()):
+            field_pair_layout.itemAt(i).widget().deleteLater()
+
+    @QtCore.Slot()
+    def plus(self, field_pairs_layout: QtWidgets.QVBoxLayout) -> None:
+        field_pair_layout = QtWidgets.QHBoxLayout()
         name = QtWidgets.QLineEdit()
         name.setPlaceholderText('Name')
-        entry.addWidget(name)
-        description = QtWidgets.QLineEdit()
-        description.setPlaceholderText('Description')
-        entry.addWidget(description)
-        remove = QtWidgets.QPushButton()
-        remove.setIcon(self.remove_icon)
-        remove.setIconSize(QtCore.QSize(12, 12))
-        remove.setProperty('class', 'button-icon-only')
-        def wrapper_remove(entry: QtWidgets.QHBoxLayout) -> typing.Callable[[], None]:
-            return lambda: self.remove(entry)
-        remove.clicked.connect(wrapper_remove(entry))
-        entry.addWidget(remove)
-        entries.addLayout(entry)
+        field_pair_layout.addWidget(name)
+        definition = QtWidgets.QLineEdit()
+        definition.setPlaceholderText('Definition')
+        field_pair_layout.addWidget(definition)
+        minus = QtWidgets.QPushButton()
+        minus.setIcon(self.minus_icon)
+        minus.setIconSize(QtCore.QSize(12, 12))
+        minus.setProperty('class', 'button-icon-only')
+        def wrapper_minus(field_pair_layout: QtWidgets.QHBoxLayout) -> typing.Callable[[], None]:
+            return lambda: self.minus(field_pair_layout)
+        minus.clicked.connect(wrapper_minus(field_pair_layout))
+        field_pair_layout.addWidget(minus)
+        field_pairs_layout.addLayout(field_pair_layout)
 
     @QtCore.Slot()
     def save(self, group_box: QtWidgets.QGroupBox) -> None:
         line_edits = group_box.findChildren(QtWidgets.QLineEdit)
         result = {}
         for i in range(0, len(line_edits), 2):
-            name_line_edit = line_edits[i]
-            description_line_edit = line_edits[i+1]
-            if len(name_line_edit.text()) == 0:
-                name_line_edit.setStyleSheet('background-color: #d61c54;')
-            if len(description_line_edit.text()) == 0:
-                description_line_edit.setStyleSheet('background-color: #d61c54;')
-            if name_line_edit.text() and description_line_edit.text():
-                result[name_line_edit.text()] = description_line_edit.text()
+            name = line_edits[i]
+            definition = line_edits[i+1]
+            if len(name.text()) == 0:
+                name.setStyleSheet('background-color: #d61c54;')
+            if len(definition.text()) == 0:
+                definition.setStyleSheet('background-color: #d61c54;')
+            if name.text() and definition.text():
+                result[name.text()] = definition.text()
         if 'Password' not in result:
             return
         try:
@@ -288,9 +286,11 @@ class CentralWidget(QtWidgets.QWidget):
             self.pm.create(group_box.title(), result)
 
     @QtCore.Slot()
-    def delete(self, group_box: QtWidgets.QGroupBox) -> None:
-        self.pm.delete(group_box.title(), interactive=False)
-        group_box.hide()
+    def show_hide_password(self, password: QtWidgets.QLineEdit) -> None:
+        if password.echoMode() == QtWidgets.QLineEdit.EchoMode.Password:
+            password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
+        else:
+            password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
 
 
 class PasswordWindow(QtWidgets.QWidget):
@@ -303,10 +303,10 @@ class PasswordWindow(QtWidgets.QWidget):
         self.password.setPlaceholderText('Database password')
         self.password.returnPressed.connect(self.run)
         layout.addWidget(self.password)
-        self.button = QtWidgets.QPushButton('Continue')
-        self.button.setProperty('class', 'button-alt')
-        self.button.clicked.connect(self.run)
-        layout.addWidget(self.button)
+        button = QtWidgets.QPushButton('Continue')
+        button.setProperty('class', 'button-alt')
+        button.clicked.connect(self.run)
+        layout.addWidget(button)
         self.setLayout(layout)
 
     @QtCore.Slot()
@@ -344,8 +344,7 @@ def main() -> None:
     if len(sys.argv) == 1:
         app = QtWidgets.QApplication()
         QtGui.QFontDatabase.addApplicationFont(FONT_PATH)
-        with open(STYLESHEET_PATH) as file:
-            stylesheet = file.read()
+        stylesheet = file_read(STYLESHEET_PATH).decode()
         app.setStyleSheet(stylesheet)
         open_password_window()
         sys.exit(app.exec())
