@@ -85,7 +85,9 @@ class FieldPair(QWidget):
 
         self.icon_size = QSize(12, 12)
         self.copy_icon = QIcon(':/copy.svg')
+        self.hide_icon = QIcon(':/hide.svg')
         self.minus_icon = QIcon(':/minus.svg')
+        self.show_icon = QIcon(':/show.svg')
 
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -118,6 +120,18 @@ class FieldPair(QWidget):
             self.name_line_edit.setReadOnly(True)
             self.definition_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
             self.definition_line_edit.setPlaceholderText('Password')
+
+            self.show_hide_push_button = AnimatedPushButton('')
+            self.show_hide_push_button.setIcon(self.show_icon)
+            self.show_hide_push_button.setIconSize(self.icon_size)
+            self.show_hide_push_button.setProperty('class', 'button-icon-only')
+
+            def wrapper_show_hide_password(password_line_edit: QLineEdit) -> Callable[[], None]:
+                return lambda: self.show_hide_password(password_line_edit)
+
+            self.show_hide_push_button.clicked.connect(wrapper_show_hide_password(self.definition_line_edit))
+
+            layout.addWidget(self.show_hide_push_button)
         else:
             self.definition_line_edit.setPlaceholderText('Definition')
 
@@ -146,6 +160,15 @@ class FieldPair(QWidget):
         layout_delete(layout)
         self.deleteLater()
         self.updateGeometry()
+
+    @Slot()
+    def show_hide_password(self, password_line_edit: QLineEdit) -> None:
+        if password_line_edit.echoMode() == QLineEdit.EchoMode.Password:
+            password_line_edit.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.show_hide_push_button.setIcon(self.hide_icon)
+        else:
+            password_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
+            self.show_hide_push_button.setIcon(self.show_icon)
 
 
 class GeneratePassword(QWidget):
@@ -337,15 +360,6 @@ class CentralWidget(QWidget):
 
                 password_buttons_layout.addWidget(generate_push_button)
 
-                show_push_button = AnimatedPushButton('Show')
-
-                def wrapper_show_hide_password(password_line_edit: QLineEdit) -> Callable[[], None]:
-                    return lambda: self.show_hide_password(password_line_edit)
-
-                show_push_button.clicked.connect(wrapper_show_hide_password(field_pair.definition_line_edit))
-
-                password_buttons_layout.addWidget(show_push_button)
-
                 field_pairs_layout.insertLayout(1, password_buttons_layout)
             else:
                 field_pairs_layout.addWidget(field_pair)
@@ -491,13 +505,6 @@ class CentralWidget(QWidget):
             self.main_window.statusBar().showMessage('Saved all', STATUSBAR_TIMEOUT)
         else:
             self.main_window.statusBar().showMessage('Some fields are empty', STATUSBAR_TIMEOUT)
-
-    @Slot()
-    def show_hide_password(self, password_line_edit: QLineEdit) -> None:
-        if password_line_edit.echoMode() == QLineEdit.EchoMode.Password:
-            password_line_edit.setEchoMode(QLineEdit.EchoMode.Normal)
-        else:
-            password_line_edit.setEchoMode(QLineEdit.EchoMode.Password)
 
 
 class MainWindow(QMainWindow):
