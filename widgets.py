@@ -85,7 +85,7 @@ class FieldPair(QWidget):
 
         self.icon_size = QSize(12, 12)
         self.copy_icon = QIcon(':/copy.svg')
-        self.minus_icon = QIcon(str(lock.PROGRAM_DIR_PATH / 'minus-solid.svg'))
+        self.minus_icon = QIcon(':/minus.svg')
 
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -152,7 +152,7 @@ class GeneratePassword(QWidget):
     def __init__(self, password_line_edit: QLineEdit) -> None:
         super().__init__()
 
-        program_icon = QIcon(str(lock.PROGRAM_ICON_PATH))
+        program_icon = QIcon(':/icon.png')
 
         self.setFixedWidth(WINDOW_WIDTH)
         self.setWindowIcon(program_icon)
@@ -251,7 +251,7 @@ class CentralWidget(QWidget):
         self.main_window = main_window
 
         self.icon_size = QSize(12, 12)
-        self.plus_icon = QIcon(str(lock.PROGRAM_DIR_PATH / 'plus-solid.svg'))
+        self.plus_icon = QIcon(':/plus.svg')
         self.to_delete: list[str] = []
 
         layout = QVBoxLayout()
@@ -504,7 +504,7 @@ class MainWindow(QMainWindow):
     def __init__(self, pm: lock.PasswordManager) -> None:
         super().__init__()
 
-        program_icon = QIcon(str(lock.PROGRAM_ICON_PATH))
+        program_icon = QIcon(':/icon.png')
 
         self.setFixedWidth(WINDOW_WIDTH)
         self.setFixedHeight(WINDOW_HEIGHT)
@@ -538,7 +538,7 @@ class PasswordWidget(QWidget):
 
         self.app = app
 
-        program_icon = QIcon(str(lock.PROGRAM_ICON_PATH))
+        program_icon = QIcon(':/icon.png')
 
         self.setFixedWidth(WINDOW_WIDTH)
         self.setWindowIcon(program_icon)

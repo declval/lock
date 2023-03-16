@@ -3,5 +3,9 @@
         <file>check_box_checked.svg</file>
         <file>check_box_unchecked.svg</file>
         <file>copy.svg</file>
+        <file>icon.png</file>
+        <file>minus.svg</file>
+        <file>plus.svg</file>
+        <file>roboto.ttf</file>
     </qresource>
 </RCC>
