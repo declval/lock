@@ -20,6 +20,8 @@ QGroupBox::title {
 QLineEdit {
     background-color: #ffffff;
     border-radius: 6px;
+    lineedit-password-character: 42;
+    lineedit-password-mask-delay: 400;
     padding: 6px 12px;
 }
 
