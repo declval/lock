@@ -1,4 +1,3 @@
-import argparse
 import getpass
 import hashlib
 import json
@@ -9,6 +8,8 @@ import typing
 from PySide6 import QtCore, QtGui, QtWidgets
 import nacl.exceptions
 import nacl.secret
+
+from helpers import error, file_read, file_write, parse_arguments
 
 PROGRAM_NAME = 'lock'
 DATABASE_PATH = os.path.join(os.path.expanduser('~'), f'.{PROGRAM_NAME}')
@@ -33,18 +34,15 @@ class PasswordManager:
         if password is None:
             password = getpass.getpass('Database password: ')
             if len(password) == 0:
-                print('Database password can not be empty', file=sys.stderr)
-                sys.exit(1)
+                error('Database password can not be empty')
         key = hashlib.blake2b(password.encode(), digest_size=32).digest()
         self.box = nacl.secret.SecretBox(key)
         self.database_path = database_path
         if not os.path.exists(self.database_path):
             print(f'Creating new database {self.database_path}')
             encrypted = self.box.encrypt('{}'.encode())
-            with open(self.database_path, 'wb') as file:
-                file.write(encrypted)
-        with open(self.database_path, 'rb') as file:
-            encrypted = file.read()
+            file_write(self.database_path, encrypted)
+        encrypted = file_read(self.database_path)
         plaintext = self.box.decrypt(encrypted)
         self.contents = json.loads(plaintext.decode())
 
@@ -73,8 +71,7 @@ class PasswordManager:
         self.contents[entry_key] = entry_value
         plaintext = json.dumps(self.contents, separators=(',', ':'), sort_keys=True)
         encrypted = self.box.encrypt(plaintext.encode())
-        with open(self.database_path, 'wb') as file:
-            file.write(encrypted)
+        file_write(self.database_path, encrypted)
 
     def read(self, entry_key: str | None = None) -> dict[str, dict[str, str]]:
         if entry_key is None:
@@ -101,8 +98,7 @@ class PasswordManager:
         self.contents[entry_key] = entry_value
         plaintext = json.dumps(self.contents, separators=(',', ':'), sort_keys=True)
         encrypted = self.box.encrypt(plaintext.encode())
-        with open(self.database_path, 'wb') as file:
-            file.write(encrypted)
+        file_write(self.database_path, encrypted)
 
     def delete(self, entry_key: str, interactive: bool = True) -> None:
         if self.contents.get(entry_key) is None:
@@ -116,8 +112,7 @@ class PasswordManager:
                 del self.contents[entry_key]
                 plaintext = json.dumps(self.contents, separators=(',', ':'), sort_keys=True)
                 encrypted = self.box.encrypt(plaintext.encode())
-                with open(self.database_path, 'wb') as file:
-                    file.write(encrypted)
+                file_write(self.database_path, encrypted)
             case _:
                 pass
 
@@ -331,23 +326,7 @@ def open_main_window(pm: PasswordManager) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description='lock is a very simple password manager written in Python.')
-
-    subparsers = parser.add_subparsers(dest='subcommand', title='subcommands')
-
-    parser_create = subparsers.add_parser('create')
-    parser_create.add_argument('entry')
-
-    parser_read = subparsers.add_parser('read')
-    parser_read.add_argument('entry', nargs='?')
-
-    parser_update = subparsers.add_parser('update')
-    parser_update.add_argument('entry')
-
-    parser_delete = subparsers.add_parser('delete')
-    parser_delete.add_argument('entry')
-
-    args = parser.parse_args()
+    args = parse_arguments()
 
     if len(sys.argv) == 1:
         app = QtWidgets.QApplication()
@@ -361,34 +340,29 @@ def main() -> None:
     try:
         pm = PasswordManager(DATABASE_PATH, False)
     except nacl.exceptions.CryptoError:
-        print('Decryption failed', file=sys.stderr)
-        sys.exit(1)
+        error('Decryption failed')
 
     match args.subcommand:
         case 'create':
             try:
                 pm.create(args.entry)
             except EntryExistsError as e:
-                print(f'Entry {e} already exists in the database', file=sys.stderr)
-                sys.exit(1)
+                error(f'Entry {e} already exists in the database')
         case 'read':
             try:
                 pm.read(args.entry)
             except EntryDoesNotExistError as e:
-                print(f'Entry {e} does not exist in the database', file=sys.stderr)
-                sys.exit(1)
+                error(f'Entry {e} does not exist in the database')
         case 'update':
             try:
                 pm.update(args.entry)
             except EntryDoesNotExistError as e:
-                print(f'Entry {e} does not exist in the database', file=sys.stderr)
-                sys.exit(1)
+                error(f'Entry {e} does not exist in the database')
         case 'delete':
             try:
                 pm.delete(args.entry)
             except EntryDoesNotExistError as e:
-                print(f'Entry {e} does not exist in the database', file=sys.stderr)
-                sys.exit(1)
+                error(f'Entry {e} does not exist in the database')
         case _:
             pass
 
