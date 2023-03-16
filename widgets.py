@@ -16,6 +16,7 @@ BUTTON_ANIMATION_COLOR_DELTA = 10
 BUTTON_ANIMATION_DURATION = 200
 
 GENERATED_PASSWORD_LENGTH_MAX = 1024
+GENERATED_PASSWORD_LENGTH_MIN = 4
 
 ICON_SIZE = 12
 
@@ -445,7 +446,7 @@ class GeneratePassword(QWidget):
         layout.setSpacing(LAYOUT_SPACING)
 
         self.length_line_edit = LineEdit()
-        self.length_line_edit.setPlaceholderText(f'Password length (up to and including {GENERATED_PASSWORD_LENGTH_MAX})')
+        self.length_line_edit.setPlaceholderText(f'Password length ({GENERATED_PASSWORD_LENGTH_MIN} to {GENERATED_PASSWORD_LENGTH_MAX} characters)')
 
         def wrapper_update_password(password_line_edit: LineEdit) -> Callable[[], None]:
             return lambda: self.update_password(password_line_edit)
@@ -494,7 +495,7 @@ class GeneratePassword(QWidget):
 
         try:
             password_length = int(self.length_line_edit.text())
-            if password_length <= 0 or password_length > GENERATED_PASSWORD_LENGTH_MAX:
+            if password_length < GENERATED_PASSWORD_LENGTH_MIN or password_length > GENERATED_PASSWORD_LENGTH_MAX:
                 self.length_line_edit.validation_state.set_invalid()
                 errors = True
         except ValueError:

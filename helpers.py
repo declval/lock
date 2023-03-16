@@ -29,17 +29,44 @@ def password_generate(length: int, *, lowercase: bool = False,
                       uppercase: bool = False, digits: bool = False,
                       punctuation: bool = False) -> str:
     characters = ''
+    password = [''] * length
+    password_indices = list(range(length))
+
     if lowercase:
         characters += string.ascii_lowercase
+
+        password_index = secrets.choice(password_indices)
+        password_indices.pop(password_indices.index(password_index))
+        password[password_index] = secrets.choice(string.ascii_lowercase)
+
     if uppercase:
         characters += string.ascii_uppercase
+
+        password_index = secrets.choice(password_indices)
+        password_indices.pop(password_indices.index(password_index))
+        password[password_index] = secrets.choice(string.ascii_uppercase)
+
     if digits:
         characters += string.digits
+
+        password_index = secrets.choice(password_indices)
+        password_indices.pop(password_indices.index(password_index))
+        password[password_index] = secrets.choice(string.digits)
+
     if punctuation:
         characters += string.punctuation
+
+        password_index = secrets.choice(password_indices)
+        password_indices.pop(password_indices.index(password_index))
+        password[password_index] = secrets.choice(string.punctuation)
+
     if not characters:
-        raise ValueError('At least one of the keyword-only arguments has to be True')
-    return ''.join(secrets.choice(characters) for _ in range(length))
+        characters = (string.ascii_lowercase
+            + string.ascii_uppercase
+            + string.digits
+            + string.punctuation)
+
+    return ''.join(secrets.choice(characters) if not c else c for c in password)
 
 
 # This function needs to be called after the show() method on a widget. Otherwise
