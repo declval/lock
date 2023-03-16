@@ -3,8 +3,8 @@ from typing import Callable
 from PySide6.QtCore import QSize, Qt, Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLayout,
-                               QLineEdit, QMainWindow, QPushButton, QStatusBar,
-                               QToolBar, QVBoxLayout, QWidget)
+                               QLineEdit, QMainWindow, QPushButton, QScrollArea,
+                               QStatusBar, QToolBar, QVBoxLayout, QWidget)
 from nacl.exceptions import CryptoError
 
 from helpers import layout_delete
@@ -52,9 +52,24 @@ class CentralWidget(QWidget):
 
         layout.addLayout(create_layout)
 
+        self.scroll_area_widget_layout = QVBoxLayout()
+        self.scroll_area_widget_layout.addStretch()
+
         for entry_name, entry_value in self.contents.items():
-            entry = self.create_entry(entry_name, entry_value)
-            layout.addWidget(entry)
+            entry_group_box = self.create_entry(entry_name, entry_value)
+            index =  self.scroll_area_widget_layout.count() - 1
+            self.scroll_area_widget_layout.insertWidget(index, entry_group_box)
+
+        scroll_area_widget = QWidget()
+        scroll_area_widget.setLayout(self.scroll_area_widget_layout)
+
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll_area.setWidget(scroll_area_widget)
+        self.scroll_area.setWidgetResizable(True)
+
+        layout.addWidget(self.scroll_area)
 
         self.setLayout(layout)
 
@@ -185,7 +200,8 @@ class CentralWidget(QWidget):
             return
         name_line_edit.setStyleSheet('background-color: #ffffff;')
         entry_group_box = self.create_entry(entry_name, {'Password': ''})
-        self.layout().addWidget(entry_group_box)
+        index =  self.scroll_area_widget_layout.count() - 1
+        self.scroll_area_widget_layout.insertWidget(index, entry_group_box)
 
     @Slot()
     def delete(self, entry_group_box: QGroupBox) -> None:
@@ -297,11 +313,11 @@ class MainWindow(QMainWindow):
 
         program_icon = QIcon(str(lock.PROGRAM_ICON_PATH))
 
+        self.setFixedWidth(lock.WINDOW_WIDTH)
+        self.setFixedHeight(lock.WINDOW_HEIGHT)
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint)
         self.setWindowIcon(program_icon)
         self.setWindowTitle(lock.PROGRAM_NAME)
-
-        self.layout().setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
         central_widget = CentralWidget(pm, self)
 
@@ -329,6 +345,7 @@ class PasswordWidget(QWidget):
 
         program_icon = QIcon(str(lock.PROGRAM_ICON_PATH))
 
+        self.setFixedWidth(lock.WINDOW_WIDTH)
         self.setWindowIcon(program_icon)
         self.setWindowTitle(lock.PROGRAM_NAME)
 
