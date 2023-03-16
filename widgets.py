@@ -1,6 +1,6 @@
 from typing import Callable
 
-from PySide6.QtCore import Property, QEvent, QPropertyAnimation, QSize, Qt, Slot
+from PySide6.QtCore import Property, QEasingCurve, QEvent, QPropertyAnimation, QSize, Qt, Slot
 from PySide6.QtGui import QColor, QEnterEvent, QIcon, QPalette
 from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLineEdit,
                                QMainWindow, QPushButton, QScrollArea, QStatusBar,
@@ -15,6 +15,8 @@ SPACING = 10
 
 BUTTON_ANIMATION_DURATION = 200
 BUTTON_ANIMATION_COLOR_STEP = 10
+
+SCROLL_TO_BOTTOM_ANIMATION_DURATION = 600
 
 
 class AnimatedPushButton(QPushButton):
@@ -266,6 +268,24 @@ class CentralWidget(QWidget):
         index =  self.scroll_area_widget_layout.count() - 1
         self.scroll_area_widget_layout.insertWidget(index, entry_group_box)
         name_line_edit.clear()
+
+        # Animated scroll to bottom
+        self.prev_max = 0
+        def range_changed(min: int, max: int) -> None:
+            if max > self.prev_max:
+                self.prev_max = max
+
+                vertical_scroll_bar = self.scroll_area.verticalScrollBar()
+
+                animation = QPropertyAnimation(vertical_scroll_bar, b'value', vertical_scroll_bar)
+                animation.setDuration(SCROLL_TO_BOTTOM_ANIMATION_DURATION)
+                animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+                animation.setEndValue(max)
+                animation.start()
+
+                self.scroll_area.verticalScrollBar().rangeChanged.disconnect()
+        if entry_names:
+            self.scroll_area.verticalScrollBar().rangeChanged.connect(range_changed)
 
     @Slot()
     def delete(self, entry_group_box: QGroupBox) -> None:
