@@ -1,0 +1,35 @@
+QWidget {
+    background-color: #eeeeee;
+    color: #404040;
+    font-family: "Roboto";
+}
+
+QLineEdit {
+    background-color: #ffffff;
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+
+QPushButton {
+    background-color: #ffffff;
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+
+.button-alt {
+    background-color: #404040;
+    color: #ffffff;
+}
+
+.button-warn {
+    color: #d61c54;
+}
+
+.button-icon-only {
+    background-color: #eeeeee;
+    padding: 8px;
+}
+
+.button-icon-only:hover {
+    background-color: #ffffff;
+}

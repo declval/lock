@@ -6,12 +6,13 @@ import os.path
 import sys
 import typing
 
-from PySide6 import QtCore, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 import nacl.exceptions
 import nacl.secret
 
 PROGRAM_NAME = 'lock'
 DATABASE_PATH = os.path.join(os.path.expanduser('~'), f'.{PROGRAM_NAME}')
+STYLESHEET = 'stylesheet.css'
 WINDOW_WIDTH = 400
 WINDOW_HEIGHT = 0
 
@@ -126,14 +127,18 @@ class CentralWidget(QtWidgets.QWidget):
         super().__init__()
         self.pm = pm
         self.contents = self.pm.read()
+        self.add_icon = QtGui.QIcon('plus-solid.svg')
+        self.remove_icon = QtGui.QIcon('minus-solid.svg')
         layout = QtWidgets.QVBoxLayout(self)
         create = QtWidgets.QHBoxLayout()
         create_line_edit = QtWidgets.QLineEdit()
+        create_line_edit.setPlaceholderText('New entry name')
         def wrapper_create_new_entry(create_line_edit: QtWidgets.QLineEdit) -> typing.Callable[[], None]:
             return lambda: self.create_new_entry(create_line_edit)
         create_line_edit.returnPressed.connect(wrapper_create_new_entry(create_line_edit))
         create.addWidget(create_line_edit)
         create_button = QtWidgets.QPushButton('Create')
+        create_button.setProperty('class', 'button-alt')
         create_button.clicked.connect(wrapper_create_new_entry(create_line_edit))
         create.addWidget(create_button)
         layout.addLayout(create)
@@ -153,6 +158,7 @@ class CentralWidget(QtWidgets.QWidget):
                 description = QtWidgets.QLineEdit(entry_value_description)
                 buttons = None
                 if entry_value_name == 'Password':
+                    name.setReadOnly(True)
                     description.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
                     buttons = QtWidgets.QHBoxLayout()
                     buttons.addStretch()
@@ -166,28 +172,38 @@ class CentralWidget(QtWidgets.QWidget):
                         return lambda: self.show_hide_password(password)
                     show.clicked.connect(wrapper_show_hide_password(description))
                     buttons.addWidget(show)
+                    buttons.addSpacing(38)
                 entry.addWidget(description)
                 if entry_value_name != 'Password':
-                    remove = QtWidgets.QPushButton('Remove')
+                    remove = QtWidgets.QPushButton()
+                    remove.setIcon(self.remove_icon)
+                    remove.setIconSize(QtCore.QSize(12, 12))
+                    remove.setProperty('class', 'button-icon-only')
                     def wrapper_remove(entry: QtWidgets.QHBoxLayout) -> typing.Callable[[], None]:
                         return lambda: self.remove(entry)
                     remove.clicked.connect(wrapper_remove(entry))
                     entry.addWidget(remove)
+                else:
+                    entry.addSpacing(38)
                 entries.addLayout(entry)
                 if buttons is not None:
                     entries.addLayout(buttons)
             entries_and_buttons.addLayout(entries)
-            add = QtWidgets.QPushButton('Add')
+            add = QtWidgets.QPushButton()
+            add.setIcon(self.add_icon)
+            add.setIconSize(QtCore.QSize(12, 12))
+            add.setProperty('class', 'button-icon-only')
             def wrapper_add(entries: QtWidgets.QVBoxLayout) -> typing.Callable[[], None]:
                 return lambda: self.add(entries)
             add.clicked.connect(wrapper_add(entries))
-            entries_and_buttons.addWidget(add, 0, QtCore.Qt.AlignmentFlag.AlignLeft)
+            entries_and_buttons.addWidget(add, 0, QtCore.Qt.AlignmentFlag.AlignRight)
             save = QtWidgets.QPushButton('Save')
             def wrapper_save(group_box: QtWidgets.QGroupBox) -> typing.Callable[[], None]:
                 return lambda: self.save(group_box)
             save.clicked.connect(wrapper_save(group_box))
             entries_and_buttons.addWidget(save)
             delete = QtWidgets.QPushButton('Delete')
+            delete.setProperty('class', 'button-warn')
             def wrapper_delete(group_box: QtWidgets.QGroupBox) -> typing.Callable[[], None]:
                 return lambda: self.delete(group_box)
             delete.clicked.connect(wrapper_delete(group_box))
@@ -198,10 +214,10 @@ class CentralWidget(QtWidgets.QWidget):
     @QtCore.Slot()
     def create_new_entry(self, create_line_edit: QtWidgets.QLineEdit) -> None:
         title = create_line_edit.text()
-        if not title:
+        if not title or title in self.contents:
+            create_line_edit.setStyleSheet('background-color: #d61c54;')
             return
-        if title in self.contents:
-            return
+        create_line_edit.setStyleSheet('background-color: #ffffff;')
         self.contents[title] = {'Password': ''}
         group_box = self.create_entry(title, self.contents[title])
         self.layout().addWidget(group_box)
@@ -230,7 +246,10 @@ class CentralWidget(QtWidgets.QWidget):
         entry.addWidget(name)
         description = QtWidgets.QLineEdit()
         entry.addWidget(description)
-        remove = QtWidgets.QPushButton('Remove')
+        remove = QtWidgets.QPushButton()
+        remove.setIcon(self.remove_icon)
+        remove.setIconSize(QtCore.QSize(12, 12))
+        remove.setProperty('class', 'button-icon-only')
         def wrapper_remove(entry: QtWidgets.QHBoxLayout) -> typing.Callable[[], None]:
             return lambda: self.remove(entry)
         remove.clicked.connect(wrapper_remove(entry))
@@ -245,9 +264,9 @@ class CentralWidget(QtWidgets.QWidget):
             name_line_edit = line_edits[i]
             description_line_edit = line_edits[i+1]
             if len(name_line_edit.text()) == 0:
-                name_line_edit.setStyleSheet('background-color: red;')
+                name_line_edit.setStyleSheet('background-color: #d61c54;')
             if len(description_line_edit.text()) == 0:
-                description_line_edit.setStyleSheet('background-color: red;')
+                description_line_edit.setStyleSheet('background-color: #d61c54;')
             if name_line_edit.text() and description_line_edit.text():
                 result[name_line_edit.text()] = description_line_edit.text()
         if 'Password' not in result:
@@ -274,6 +293,7 @@ class PasswordWindow(QtWidgets.QWidget):
         self.password.returnPressed.connect(self.run)
         layout.addWidget(self.password)
         self.button = QtWidgets.QPushButton('Continue')
+        self.button.setProperty('class', 'button-alt')
         self.button.clicked.connect(self.run)
         layout.addWidget(self.button)
         self.setLayout(layout)
@@ -283,7 +303,7 @@ class PasswordWindow(QtWidgets.QWidget):
         try:
             pm = PasswordManager(DATABASE_PATH, True, self.password.text())
         except nacl.exceptions.CryptoError:
-            self.password.setStyleSheet('background-color: red;')
+            self.password.setStyleSheet('background-color: #d61c54;')
             return
         self.hide()
         open_main_window(pm)
@@ -333,6 +353,10 @@ def main() -> None:
 
     if args.g:
         app = QtWidgets.QApplication()
+        QtGui.QFontDatabase.addApplicationFont('Roboto-Regular.ttf')
+        with open(STYLESHEET) as file:
+            stylesheet = file.read()
+        app.setStyleSheet(stylesheet)
         open_password_window()
         sys.exit(app.exec())
 
