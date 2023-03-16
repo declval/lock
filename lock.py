@@ -40,11 +40,17 @@ class PasswordManager:
         self.database_path = database_path
         if not os.path.exists(self.database_path):
             print(f'Creating new database {self.database_path}')
-            encrypted = self.box.encrypt('{}'.encode())
-            file_write(self.database_path, encrypted)
-        encrypted = file_read(self.database_path)
-        plaintext = self.box.decrypt(encrypted)
-        self.contents = json.loads(plaintext.decode())
+            ciphertext = self.encrypt('{}')
+            file_write(self.database_path, ciphertext)
+        ciphertext = file_read(self.database_path)
+        plaintext = self.decrypt(ciphertext)
+        self.contents = json.loads(plaintext)
+
+    def encrypt(self, plaintext: str) -> bytes:
+        return self.box.encrypt(plaintext.encode())
+
+    def decrypt(self, ciphertext: bytes) -> str:
+        return self.box.decrypt(ciphertext).decode()
 
     def read_entry_value(self) -> dict[str, str]:
         entry_value: dict[str, str] = {}
@@ -70,8 +76,8 @@ class PasswordManager:
             entry_value = self.read_entry_value()
         self.contents[entry_key] = entry_value
         plaintext = json.dumps(self.contents, separators=(',', ':'), sort_keys=True)
-        encrypted = self.box.encrypt(plaintext.encode())
-        file_write(self.database_path, encrypted)
+        ciphertext = self.encrypt(plaintext)
+        file_write(self.database_path, ciphertext)
 
     def read(self, entry_key: str | None = None) -> dict[str, dict[str, str]]:
         if entry_key is None:
@@ -97,8 +103,8 @@ class PasswordManager:
             entry_value = self.read_entry_value()
         self.contents[entry_key] = entry_value
         plaintext = json.dumps(self.contents, separators=(',', ':'), sort_keys=True)
-        encrypted = self.box.encrypt(plaintext.encode())
-        file_write(self.database_path, encrypted)
+        ciphertext = self.encrypt(plaintext)
+        file_write(self.database_path, ciphertext)
 
     def delete(self, entry_key: str, interactive: bool = True) -> None:
         if self.contents.get(entry_key) is None:
@@ -111,8 +117,8 @@ class PasswordManager:
             case 'yes' | 'y':
                 del self.contents[entry_key]
                 plaintext = json.dumps(self.contents, separators=(',', ':'), sort_keys=True)
-                encrypted = self.box.encrypt(plaintext.encode())
-                file_write(self.database_path, encrypted)
+                ciphertext = self.encrypt(plaintext)
+                file_write(self.database_path, ciphertext)
             case _:
                 pass
 

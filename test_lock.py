@@ -14,9 +14,8 @@ class TestCreate(unittest.TestCase):
 
     def test_create(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
-        encrypted = file_read(self.database_path)
-        plaintext = self.pm.box.decrypt(encrypted)
-        got = plaintext.decode()
+        ciphertext = file_read(self.database_path)
+        got = self.pm.decrypt(ciphertext)
         expected = '{"Google":{"Password":"1234","Username":"Alice"}}'
         self.assertEqual(got, expected)
 
@@ -24,9 +23,8 @@ class TestCreate(unittest.TestCase):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
         with self.assertRaises(lock.EntryExistsError):
             self.pm.create('Google', {'Username': 'Alice', 'Password': '5678'})
-        encrypted = file_read(self.database_path)
-        plaintext = self.pm.box.decrypt(encrypted)
-        got = plaintext.decode()
+        ciphertext = file_read(self.database_path)
+        got = self.pm.decrypt(ciphertext)
         expected = '{"Google":{"Password":"1234","Username":"Alice"}}'
         self.assertEqual(got, expected)
 
@@ -75,9 +73,8 @@ class TestUpdate(unittest.TestCase):
     def test_update(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
         self.pm.update('Google', {'Username': 'Alice', 'Password': '5678'})
-        encrypted = file_read(self.database_path)
-        plaintext = self.pm.box.decrypt(encrypted)
-        got = plaintext.decode()
+        ciphertext = file_read(self.database_path)
+        got = self.pm.decrypt(ciphertext)
         expected = '{"Google":{"Password":"5678","Username":"Alice"}}'
         self.assertEqual(got, expected)
 
@@ -98,9 +95,8 @@ class TestDelete(unittest.TestCase):
     def test_delete(self):
         self.pm.create('Google', {'Username': 'Alice', 'Password': '1234'})
         self.pm.delete('Google', interactive=False)
-        encrypted = file_read(self.database_path)
-        plaintext = self.pm.box.decrypt(encrypted)
-        got = plaintext.decode()
+        ciphertext = file_read(self.database_path)
+        got = self.pm.decrypt(ciphertext)
         expected = '{}'
         self.assertEqual(got, expected)
 
