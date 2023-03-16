@@ -8,7 +8,7 @@ subprocess.run([
     '--add-data', 'icon.png;.',
     '--add-data', 'minus-solid.svg;.',
     '--add-data', 'plus-solid.svg;.',
-    '--add-data', 'stylesheet.css;.',
+    '--add-data', 'stylesheet.qss;.',
     '--hidden-import', '_cffi_backend',
     '--noconsole',
     '--onefile',

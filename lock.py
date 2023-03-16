@@ -16,7 +16,7 @@ PROGRAM_NAME = 'lock'
 PROGRAM_DIR_PATH = Path(__file__).parent
 PROGRAM_ICON_PATH = PROGRAM_DIR_PATH / 'icon.png'
 DATABASE_PATH = Path.home() / f'.{PROGRAM_NAME}'
-STYLESHEET_PATH = PROGRAM_DIR_PATH / 'stylesheet.css'
+STYLESHEET_PATH = PROGRAM_DIR_PATH / 'stylesheet.qss'
 FONT_PATH = PROGRAM_DIR_PATH / 'Roboto-Regular.ttf'
 
 JSON_SEPARATORS = (',', ':')
