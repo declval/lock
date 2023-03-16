@@ -14,7 +14,7 @@ DATABASE_PATH = os.path.join(os.path.expanduser('~'), f'.{PROGRAM_NAME}')
 
 class PasswordManager:
 
-    def __init__(self, database_path, password=None):
+    def __init__(self, database_path: str, password: str | None = None) -> None:
         if password is None:
             password = getpass.getpass('Database password: ')
             if len(password) == 0:
@@ -37,8 +37,8 @@ class PasswordManager:
             sys.exit(1)
         self.contents = json.loads(plaintext.decode())
 
-    def read_entry_value(self):
-        entry_value = {}
+    def read_entry_value(self) -> dict[str, str]:
+        entry_value: dict[str, str] = {}
         password = getpass.getpass()
         entry_value['Password'] = password
         while True:
@@ -54,7 +54,7 @@ class PasswordManager:
             entry_value[entry_value_name] = entry_value_definition
         return entry_value
 
-    def create(self, entry_key, entry_value=None):
+    def create(self, entry_key: str, entry_value: dict[str, str] | None = None) -> None:
         if self.contents.get(entry_key) is not None:
             print(f'Entry {entry_key} already exists in the database', file=sys.stderr)
             sys.exit(1)
@@ -66,7 +66,7 @@ class PasswordManager:
         with open(self.database_path, 'wb') as file:
             file.write(encrypted)
 
-    def read(self, entry_key=None):
+    def read(self, entry_key: str | None = None) -> dict[str, dict[str, str]]:
         if entry_key is None:
             for entry_key, entry_value in self.contents.items():
                 print(f'{entry_key}:')
@@ -82,7 +82,7 @@ class PasswordManager:
                 print(f'    {name}: "{definition}"')
             return {entry_key: self.contents[entry_key]}
 
-    def update(self, entry_key, entry_value=None):
+    def update(self, entry_key: str, entry_value: dict[str, str] | None = None) -> None:
         if self.contents.get(entry_key) is None:
             print(f'Entry {entry_key} does not exist in the database', file=sys.stderr)
             sys.exit(1)
@@ -94,7 +94,7 @@ class PasswordManager:
         with open(self.database_path, 'wb') as file:
             file.write(encrypted)
 
-    def delete(self, entry_key, interactive=True):
+    def delete(self, entry_key: str, interactive: bool = True) -> None:
         if self.contents.get(entry_key) is None:
             print(f'Entry {entry_key} does not exist in the database', file=sys.stderr)
             sys.exit(1)
@@ -111,7 +111,7 @@ class PasswordManager:
                     file.write(encrypted)
 
 
-def usage():
+def usage() -> None:
     print('Usage:',
          f'    {PROGRAM_NAME} create <entry>',
          f'    {PROGRAM_NAME} read [entry]',
@@ -119,7 +119,7 @@ def usage():
          f'    {PROGRAM_NAME} delete <entry>', file=sys.stderr, sep='\n')
 
 
-def main():
+def main() -> None:
     if ARGC == 1:
         usage()
         sys.exit(1)
