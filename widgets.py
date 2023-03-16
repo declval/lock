@@ -486,4 +486,4 @@ class PasswordWidget(QWidget):
 
         main_window = MainWindow(pm)
         main_window.show()
-        widget_center(self.app, main_window)
+        widget_center(main_window)

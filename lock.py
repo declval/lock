@@ -91,7 +91,7 @@ def main() -> None:
         app.setStyleSheet(stylesheet)
         password_widget = widgets.PasswordWidget(app)
         password_widget.show()
-        widget_center(app, password_widget)
+        widget_center(password_widget)
         sys.exit(app.exec())
 
     pm: PasswordManager | None = None

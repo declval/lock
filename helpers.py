@@ -49,8 +49,8 @@ def parse_arguments() -> argparse.Namespace:
 
 # This function needs to be called after the show() method on a widget. Otherwise
 # widget size is reported incorrectly
-def widget_center(app: QApplication, widget: QWidget) -> None:
-    screens = app.screens()
+def widget_center(widget: QWidget) -> None:
+    screens = QApplication.screens()
     if len(screens) == 1:
         screen_width = screens[0].availableGeometry().width()
         screen_height = screens[0].availableGeometry().height()
