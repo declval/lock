@@ -204,7 +204,10 @@ class CentralWidget(QtWidgets.QWidget):
         line_edits = group_box.findChildren(QtWidgets.QLineEdit)
         result = {}
         for i in range(0, len(line_edits), 2):
-            result[line_edits[i].text()] = line_edits[i+1].text()
+            name = line_edits[i].text()
+            description = line_edits[i+1].text()
+            if name and description:
+                result[name] = description
         self.pm.update(group_box.title(), result)
 
     @QtCore.Slot()
