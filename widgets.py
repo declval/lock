@@ -410,10 +410,12 @@ class CentralWidget(QWidget):
         if not entry_name or not entry_name.isalnum() or entry_name in entry_names:
             if not entry_name:
                 self.main_window.statusBar().showMessage('Entry name is empty', STATUSBAR_TIMEOUT)
-            if not entry_name.isalnum():
+            elif not entry_name.isalnum():
                 self.main_window.statusBar().showMessage('Entry name can only consist of alphanumeric characters', STATUSBAR_TIMEOUT)
-            if entry_name in entry_names:
+            elif entry_name in entry_names:
                 self.main_window.statusBar().showMessage(f'Entry {entry_name} already exists', STATUSBAR_TIMEOUT)
+            else:
+                raise RuntimeError('Unhandled condition')
             name_line_edit.setStyleSheet('color: #c15959;')
             return
         entry_group_box = self.create_entry(entry_name, {'Password': ''})
