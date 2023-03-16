@@ -144,11 +144,13 @@ class CentralWidget(QWidget):
             field_pair_layout = QHBoxLayout()
 
             name_line_edit = QLineEdit(entry_value_name)
+            name_line_edit.setPlaceholderText('Name')
             name_line_edit.textChanged.connect(line_edit_reset_color(name_line_edit))
 
             field_pair_layout.addWidget(name_line_edit)
 
             definition_line_edit = QLineEdit(entry_value_definition)
+            definition_line_edit.setPlaceholderText('Definition')
             definition_line_edit.textChanged.connect(line_edit_reset_color(definition_line_edit))
 
             if entry_value_name == 'Password':
