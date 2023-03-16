@@ -167,6 +167,12 @@ class CentralWidget(QtWidgets.QWidget):
                     show.clicked.connect(wrapper_show_hide_password(description))
                     buttons.addWidget(show)
                 entry.addWidget(description)
+                if entry_value_name != 'Password':
+                    remove = QtWidgets.QPushButton('Remove')
+                    def wrapper_remove(entry: QtWidgets.QHBoxLayout) -> typing.Callable[[], None]:
+                        return lambda: self.remove(entry)
+                    remove.clicked.connect(wrapper_remove(entry))
+                    entry.addWidget(remove)
                 entries.addLayout(entry)
                 if buttons is not None:
                     entries.addLayout(buttons)
@@ -213,12 +219,22 @@ class CentralWidget(QtWidgets.QWidget):
             password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
 
     @QtCore.Slot()
+    def remove(self, entry: QtWidgets.QHBoxLayout) -> None:
+        for i in range(entry.count()):
+            entry.itemAt(i).widget().deleteLater()
+
+    @QtCore.Slot()
     def add(self, entries: QtWidgets.QVBoxLayout) -> None:
         entry = QtWidgets.QHBoxLayout()
         name = QtWidgets.QLineEdit()
         entry.addWidget(name)
         description = QtWidgets.QLineEdit()
         entry.addWidget(description)
+        remove = QtWidgets.QPushButton('Remove')
+        def wrapper_remove(entry: QtWidgets.QHBoxLayout) -> typing.Callable[[], None]:
+            return lambda: self.remove(entry)
+        remove.clicked.connect(wrapper_remove(entry))
+        entry.addWidget(remove)
         entries.addLayout(entry)
 
     @QtCore.Slot()
