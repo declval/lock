@@ -4,6 +4,7 @@ import hashlib
 import json
 import sys
 
+from PySide6.QtCore import QFile, QIODevice, QTextStream
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QApplication
 from nacl.exceptions import CryptoError
@@ -86,7 +87,10 @@ def main() -> None:
 
         app = QApplication([])
         QFontDatabase.addApplicationFont(':/roboto.ttf')
-        stylesheet = file_read(STYLESHEET_PATH).decode()
+        file = QFile(':/stylesheet.qss')
+        if not file.open(QIODevice.OpenModeFlag.ReadOnly):
+            error('Failed to open :/stylesheet.qss resource')
+        stylesheet = QTextStream(file).readAll()
         app.setStyleSheet(stylesheet)
         password_widget = widgets.PasswordWidget(app)
         password_widget.show()
