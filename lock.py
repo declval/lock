@@ -17,9 +17,6 @@ DATABASE_PATH = os.path.join(os.path.expanduser('~'), f'.{PROGRAM_NAME}')
 STYLESHEET_PATH = os.path.join(os.path.dirname(__file__), 'stylesheet.css')
 FONT_PATH = os.path.join(os.path.dirname(__file__), 'Roboto-Regular.ttf')
 
-WINDOW_WIDTH = 400
-WINDOW_HEIGHT = 0
-
 JSON_SEPARATORS = (',', ':')
 JSON_SORT_KEYS = True
 
@@ -322,7 +319,6 @@ class PasswordWindow(QtWidgets.QWidget):
 def open_password_window() -> None:
     global password_window
     password_window = PasswordWindow()
-    password_window.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
     password_window.setWindowTitle(PROGRAM_NAME)
     password_window.show()
 
@@ -330,9 +326,9 @@ def open_password_window() -> None:
 def open_main_window(pm: PasswordManager) -> None:
     global main_window
     main_window = QtWidgets.QMainWindow()
+    main_window.layout().setSizeConstraint(QtWidgets.QLayout.SizeConstraint.SetFixedSize)
     central_widget = CentralWidget(pm)
     main_window.setCentralWidget(central_widget)
-    main_window.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
     main_window.setWindowTitle(PROGRAM_NAME)
     main_window.show()
 
