@@ -128,6 +128,7 @@ class CentralWidget(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout(self)
         for entry_key, entry_value in contents.items():
             group_box = QtWidgets.QGroupBox(entry_key)
+            entries_and_buttons = QtWidgets.QVBoxLayout()
             entries = QtWidgets.QVBoxLayout()
             for entry_value_name, entry_value_description in entry_value.items():
                 entry = QtWidgets.QHBoxLayout()
@@ -156,7 +157,23 @@ class CentralWidget(QtWidgets.QWidget):
                 entries.addLayout(entry)
                 if buttons is not None:
                     entries.addLayout(buttons)
-            group_box.setLayout(entries)
+            entries_and_buttons.addLayout(entries)
+            add = QtWidgets.QPushButton('Add')
+            def wrapper_add(entries: QtWidgets.QVBoxLayout) -> None:
+                return lambda: self.add(entries)
+            add.clicked.connect(wrapper_add(entries))
+            entries_and_buttons.addWidget(add)
+            save = QtWidgets.QPushButton('Save')
+            def wrapper_save(group_box: QtWidgets.QGroupBox) -> None:
+                return lambda: self.save(group_box)
+            save.clicked.connect(wrapper_save(group_box))
+            entries_and_buttons.addWidget(save)
+            delete = QtWidgets.QPushButton('Delete')
+            def wrapper_delete(group_box: QtWidgets.QGroupBox) -> None:
+                return lambda: self.delete(group_box)
+            delete.clicked.connect(wrapper_delete(group_box))
+            entries_and_buttons.addWidget(delete)
+            group_box.setLayout(entries_and_buttons)
             layout.addWidget(group_box)
         self.setLayout(layout)
 
@@ -171,6 +188,28 @@ class CentralWidget(QtWidgets.QWidget):
             password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
         else:
             password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+
+    @QtCore.Slot()
+    def add(self, entries: QtWidgets.QVBoxLayout) -> None:
+        entry = QtWidgets.QHBoxLayout()
+        name = QtWidgets.QLineEdit()
+        entry.addWidget(name)
+        description = QtWidgets.QLineEdit()
+        entry.addWidget(description)
+        entries.addLayout(entry)
+
+    @QtCore.Slot()
+    def save(self, group_box: QtWidgets.QGroupBox) -> None:
+        line_edits = group_box.findChildren(QtWidgets.QLineEdit)
+        result = {}
+        for i in range(0, len(line_edits), 2):
+            result[line_edits[i].text()] = line_edits[i+1].text()
+        self.pm.update(group_box.title(), result)
+
+    @QtCore.Slot()
+    def delete(self, group_box: QtWidgets.QGroupBox) -> None:
+        self.pm.delete(group_box.title(), interactive=False)
+        group_box.setParent(None)
 
 
 class PasswordWindow(QtWidgets.QWidget):
