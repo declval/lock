@@ -435,12 +435,15 @@ class PasswordWidget(QWidget):
         layout.setContentsMargins(MARGIN, MARGIN, MARGIN, MARGIN)
         layout.setSpacing(SPACING)
 
+        continue_push_button_text = 'Decrypt'
+
         if lock.DATABASE_PATH.exists():
             label = QLabel(f'<div>Enter a password for a database at {lock.DATABASE_PATH}</div>')
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             label.setProperty('class', 'info')
             layout.addWidget(label)
         else:
+            continue_push_button_text = 'Create'
             label = QLabel('<div style="margin-bottom: 10px;">Database does not exist yet</div>'
                           f'<div style="font-size: 10px;">It will be created at {lock.DATABASE_PATH}</div>')
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -455,7 +458,7 @@ class PasswordWidget(QWidget):
 
         layout.addWidget(self.password_line_edit)
 
-        continue_push_button = AnimatedPushButton('Continue')
+        continue_push_button = AnimatedPushButton(continue_push_button_text)
         continue_push_button.setProperty('class', 'button-alt')
         continue_push_button.clicked.connect(self.run)
 
