@@ -1,12 +1,12 @@
 from typing import Callable
 
 from PySide6.QtCore import (Property, QEasingCurve, QEvent, QPropertyAnimation,
-                            QSize, Qt, Slot)
+                            QSize, QTimer, Qt, Slot)
 from PySide6.QtGui import QCloseEvent, QColor, QEnterEvent, QIcon, QPalette
-from PySide6.QtWidgets import (QApplication, QCheckBox, QGroupBox, QHBoxLayout,
-                               QLabel, QLineEdit, QMainWindow, QPushButton,
-                               QScrollArea, QStatusBar, QToolBar, QVBoxLayout,
-                               QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QDialog, QGroupBox,
+                               QHBoxLayout, QLabel, QLineEdit, QMainWindow,
+                               QPushButton, QScrollArea, QStatusBar, QToolBar,
+                               QVBoxLayout, QWidget)
 from nacl.exceptions import CryptoError
 
 from helpers import password_generate, widget_center
@@ -91,6 +91,38 @@ class LineEdit(QLineEdit):
         self.textChanged.connect(self.validation_state.set_valid)
 
 
+class Entry(QGroupBox):
+
+    def __init__(self, title: str) -> None:
+        super().__init__(title)
+
+        self.saved_field_pair_removed = False
+
+    def saved(self) -> bool:
+        if self.saved_field_pair_removed:
+            return False
+        for field_pair in self.findChildren(FieldPair):
+            if not field_pair.saved():
+                return False
+        return True
+
+
+class ScrollArea(QScrollArea):
+
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.saved_entry_removed = False
+
+    def saved(self) -> bool:
+        if self.saved_entry_removed:
+            return False
+        for entry in self.findChildren(Entry):
+            if not entry.saved():
+                return False
+        return True
+
+
 class CentralWidget(QWidget):
 
     def __init__(self, pm: PasswordManager, main_window: QMainWindow) -> None:
@@ -134,14 +166,14 @@ class CentralWidget(QWidget):
         self.scroll_area_widget_layout.addStretch()
 
         for entry_name in self.pm:
-            entry_group_box = self.create_entry(entry_name, self.pm[entry_name])
-            index =  self.scroll_area_widget_layout.count() - 1
-            self.scroll_area_widget_layout.insertWidget(index, entry_group_box)
+            entry = self.create_entry(entry_name, self.pm[entry_name])
+            index = self.scroll_area_widget_layout.count() - 1
+            self.scroll_area_widget_layout.insertWidget(index, entry)
 
         scroll_area_widget = QWidget()
         scroll_area_widget.setLayout(self.scroll_area_widget_layout)
 
-        self.scroll_area = QScrollArea()
+        self.scroll_area = ScrollArea()
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.scroll_area.setWidget(scroll_area_widget)
@@ -151,8 +183,8 @@ class CentralWidget(QWidget):
 
         self.setLayout(layout)
 
-    def create_entry(self, entry_name: str, entry_value: dict[str, str]) -> QGroupBox:
-        entry_group_box = QGroupBox(entry_name)
+    def create_entry(self, entry_name: str, entry_value: dict[str, str]) -> Entry:
+        entry = Entry(entry_name)
 
         entry_layout = QVBoxLayout()
         entry_layout.setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN)
@@ -204,33 +236,33 @@ class CentralWidget(QWidget):
 
         save_push_button = AnimatedPushButton('Save')
 
-        def wrapper_save(entry_group_box: QGroupBox) -> Callable[[], None]:
-            return lambda: self.save(entry_group_box)
+        def wrapper_save(entry: Entry) -> Callable[[], None]:
+            return lambda: self.save(entry)
 
-        save_push_button.clicked.connect(wrapper_save(entry_group_box))
+        save_push_button.clicked.connect(wrapper_save(entry))
 
         entry_layout.addWidget(save_push_button)
 
         delete_push_button = AnimatedPushButton('Delete')
         delete_push_button.setProperty('class', 'button-warn')
 
-        def wrapper_delete(entry_group_box: QGroupBox) -> Callable[[], None]:
-            return lambda: self.delete(entry_group_box)
+        def wrapper_remove_entry(entry: Entry) -> Callable[[], None]:
+            return lambda: self.remove_entry(entry)
 
-        delete_push_button.clicked.connect(wrapper_delete(entry_group_box))
+        delete_push_button.clicked.connect(wrapper_remove_entry(entry))
 
         entry_layout.addWidget(delete_push_button)
 
         # Necessary to get rid of UI flicker when fields are removed with the minus button
         entry_layout.addStretch()
 
-        entry_group_box.setLayout(entry_layout)
-        return entry_group_box
+        entry.setLayout(entry_layout)
+        return entry
 
     @Slot()
     def create_new_entry(self, name_line_edit: LineEdit) -> None:
         entry_name = name_line_edit.text()
-        entry_names = [entry_group_box.title() for entry_group_box in self.findChildren(QGroupBox)]
+        entry_names = [entry.title() for entry in self.findChildren(Entry)]
         if not entry_name or not entry_name.isalnum() or entry_name in entry_names:
             if not entry_name:
                 self.main_window.statusBar().showMessage('Entry name is empty', STATUS_BAR_MESSAGE_TIMEOUT)
@@ -242,9 +274,9 @@ class CentralWidget(QWidget):
                 raise RuntimeError('Unhandled condition')
             name_line_edit.validation_state.set_invalid()
             return
-        entry_group_box = self.create_entry(entry_name, {'Password': ''})
+        entry = self.create_entry(entry_name, {'Password': ''})
         index =  self.scroll_area_widget_layout.count() - 1
-        self.scroll_area_widget_layout.insertWidget(index, entry_group_box)
+        self.scroll_area_widget_layout.insertWidget(index, entry)
         self.scroll_area.widget().updateGeometry()
         name_line_edit.clear()
 
@@ -267,13 +299,6 @@ class CentralWidget(QWidget):
             self.scroll_area.verticalScrollBar().rangeChanged.connect(range_changed)
 
     @Slot()
-    def delete(self, entry_group_box: QGroupBox) -> None:
-        self.to_delete.append(entry_group_box.title())
-        entry_group_box.deleteLater()
-        self.scroll_area.widget().updateGeometry()
-
-
-    @Slot()
     def open_generate_password(self, password_line_edit: LineEdit) -> None:
         self.generate_password = GeneratePassword(password_line_edit)
         self.generate_password.show()
@@ -286,10 +311,10 @@ class CentralWidget(QWidget):
         self.scroll_area.widget().updateGeometry()
 
     @Slot()
-    def save(self, entry_group_box: QGroupBox) -> bool:
+    def save(self, entry: Entry) -> bool:
         is_empty = False
 
-        field_pairs = entry_group_box.findChildren(FieldPair)
+        field_pairs = entry.findChildren(FieldPair)
 
         result = {}
 
@@ -309,7 +334,13 @@ class CentralWidget(QWidget):
             self.main_window.statusBar().showMessage('Some fields are empty', STATUS_BAR_MESSAGE_TIMEOUT)
             return False
 
-        self.pm[entry_group_box.title()] = result
+        entry.saved_field_pair_removed = False
+
+        for field_pair in field_pairs:
+            field_pair.saved_name = field_pair.name_line_edit.text()
+            field_pair.saved_definition = field_pair.definition_line_edit.text()
+
+        self.pm[entry.title()] = result
 
         self.main_window.statusBar().showMessage('Saved', STATUS_BAR_MESSAGE_TIMEOUT)
         return True
@@ -325,14 +356,23 @@ class CentralWidget(QWidget):
 
         is_saved = True
 
-        for entry_group_box in self.findChildren(QGroupBox):
-            if not self.save(entry_group_box):
+        for entry in self.findChildren(Entry):
+            if not self.save(entry):
                 is_saved = False
 
         if is_saved:
+            self.scroll_area.saved_entry_removed = False
             self.main_window.statusBar().showMessage('Saved all', STATUS_BAR_MESSAGE_TIMEOUT)
         else:
             self.main_window.statusBar().showMessage('Some fields are empty', STATUS_BAR_MESSAGE_TIMEOUT)
+
+    @Slot()
+    def remove_entry(self, entry: Entry) -> None:
+        if entry.title() in self.pm:
+            self.scroll_area.saved_entry_removed = True
+        self.to_delete.append(entry.title())
+        entry.deleteLater()
+        self.scroll_area.widget().updateGeometry()
 
 
 class FieldPair(QWidget):
@@ -341,6 +381,9 @@ class FieldPair(QWidget):
         super().__init__()
 
         self.main_window = main_window
+
+        self.saved_name = name if name else None
+        self.saved_definition = definition if definition else None
 
         self.copy_icon = QIcon(':/copy.svg')
         self.hide_icon = QIcon(':/hide.svg')
@@ -401,6 +444,15 @@ class FieldPair(QWidget):
 
         self.setLayout(layout)
 
+    def saved(self) -> bool:
+        if self.saved_name is None or self.saved_definition is None:
+            return False
+        if self.saved_name != self.name_line_edit.text():
+            return False
+        if self.saved_definition != self.definition_line_edit.text():
+            return False
+        return True
+
     @Slot()
     def copy_to_clipboard(self, definition_line_edit: LineEdit) -> None:
         clipboard = QApplication.clipboard()
@@ -409,6 +461,9 @@ class FieldPair(QWidget):
 
     @Slot()
     def minus(self) -> None:
+        if self.saved_name is not None and self.saved_definition is not None:
+            self.parent().saved_field_pair_removed = True
+
         self.deleteLater()
         self.updateGeometry()
 
@@ -558,8 +613,17 @@ class MainWindow(QMainWindow):
         self.setStatusBar(status_bar)
 
     def closeEvent(self, event: QCloseEvent) -> None:
+        if self.centralWidget().scroll_area.saved():
+            QApplication.closeAllWindows()
+            return
+
+        unsaved_dialog = UnsavedDialog()
+        QTimer.singleShot(0, lambda: widget_center(unsaved_dialog))
+        dialog_code = unsaved_dialog.exec()
+        if dialog_code != QDialog.DialogCode.Accepted:
+            event.ignore()
+            return
         QApplication.closeAllWindows()
-        return super().closeEvent(event)
 
 
 class PasswordWidget(QWidget):
@@ -627,6 +691,45 @@ class PasswordWidget(QWidget):
         main_window = MainWindow(pm)
         main_window.show()
         widget_center(main_window)
+
+
+class UnsavedDialog(QDialog):
+
+    def __init__(self):
+        super().__init__()
+
+        program_icon = QIcon(':/icon.png')
+
+        self.setFixedWidth(WINDOW_WIDTH)
+        self.setWindowIcon(program_icon)
+        self.setWindowTitle('Unsaved changes')
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN)
+        layout.setSpacing(LAYOUT_SPACING)
+
+        label = QLabel('You have unsaved changes. Are you sure you want to exit?')
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setProperty('class', 'info')
+
+        layout.addWidget(label)
+
+        buttons_layout = QHBoxLayout()
+
+        yes_push_button = AnimatedPushButton('Yes')
+        yes_push_button.clicked.connect(self.accept)
+
+        buttons_layout.addWidget(yes_push_button)
+
+        no_push_button = AnimatedPushButton('No')
+        no_push_button.setDefault(True)
+        no_push_button.clicked.connect(self.reject)
+
+        buttons_layout.addWidget(no_push_button)
+
+        layout.addLayout(buttons_layout)
+
+        self.setLayout(layout)
 
 
 class ValidationState():
