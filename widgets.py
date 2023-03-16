@@ -201,9 +201,9 @@ class CentralWidget(QWidget):
             if entry_value_name == 'Password':
                 field_pairs_layout.insertWidget(0, field_pair)
 
-                buttons_layout = QHBoxLayout()
+                password_buttons_layout = QHBoxLayout()
 
-                buttons_layout.addStretch()
+                password_buttons_layout.addStretch()
 
                 copy_push_button = AnimatedPushButton('Copy')
 
@@ -212,7 +212,7 @@ class CentralWidget(QWidget):
 
                 copy_push_button.clicked.connect(wrapper_copy_password_to_clipboard(field_pair.definition_line_edit))
 
-                buttons_layout.addWidget(copy_push_button)
+                password_buttons_layout.addWidget(copy_push_button)
 
                 show_push_button = AnimatedPushButton('Show')
 
@@ -221,14 +221,14 @@ class CentralWidget(QWidget):
 
                 show_push_button.clicked.connect(wrapper_show_hide_password(field_pair.definition_line_edit))
 
-                buttons_layout.addWidget(show_push_button)
+                password_buttons_layout.addWidget(show_push_button)
 
                 spacer_push_button = QPushButton('')
                 spacer_push_button.setProperty('class', 'spacer')
 
-                buttons_layout.addWidget(spacer_push_button)
+                password_buttons_layout.addWidget(spacer_push_button)
 
-                field_pairs_layout.insertLayout(1, buttons_layout)
+                field_pairs_layout.insertLayout(1, password_buttons_layout)
             else:
                 field_pairs_layout.addWidget(field_pair)
 
