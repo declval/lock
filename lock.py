@@ -141,7 +141,7 @@ def main() -> None:
         # Importing module widgets here to avoid circular dependencies when running tests
         import widgets
 
-        app = QApplication()
+        app = QApplication([])
         QFontDatabase.addApplicationFont(str(FONT_PATH))
         stylesheet = file_read(STYLESHEET_PATH).decode()
         app.setStyleSheet(stylesheet)
