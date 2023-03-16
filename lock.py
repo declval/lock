@@ -234,8 +234,7 @@ class CentralWidget(QWidget):
             create_name.setStyleSheet('background-color: #d61c54;')
             return
         create_name.setStyleSheet('background-color: #ffffff;')
-        self.contents[entry_name] = {'Password': ''}
-        group_box = self.create_entry(entry_name, self.contents[entry_name])
+        group_box = self.create_entry(entry_name, {'Password': ''})
         self.layout().addWidget(group_box)
 
     @Slot()
