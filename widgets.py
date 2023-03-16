@@ -18,6 +18,8 @@ BUTTON_ANIMATION_DURATION = 200
 
 GENERATED_PASSWORD_LENGTH_MAX = 1024
 
+ICON_SIZE = 12
+
 LAYOUT_MARGIN = 20
 LAYOUT_SPACING = 10
 
@@ -85,7 +87,6 @@ class FieldPair(QWidget):
 
         self.main_window = main_window
 
-        self.icon_size = QSize(12, 12)
         self.copy_icon = QIcon(':/copy.svg')
         self.hide_icon = QIcon(':/hide.svg')
         self.minus_icon = QIcon(':/minus.svg')
@@ -108,7 +109,7 @@ class FieldPair(QWidget):
 
         copy_push_button = AnimatedPushButton()
         copy_push_button.setIcon(self.copy_icon)
-        copy_push_button.setIconSize(self.icon_size)
+        copy_push_button.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
         copy_push_button.setProperty('class', 'button-icon-only')
 
         def wrapper_copy_to_clipboard(definition_line_edit: QLineEdit) -> Callable[[], None]:
@@ -125,7 +126,7 @@ class FieldPair(QWidget):
 
             self.show_hide_push_button = AnimatedPushButton('')
             self.show_hide_push_button.setIcon(self.show_icon)
-            self.show_hide_push_button.setIconSize(self.icon_size)
+            self.show_hide_push_button.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
             self.show_hide_push_button.setProperty('class', 'button-icon-only')
 
             def wrapper_show_hide_password(password_line_edit: QLineEdit) -> Callable[[], None]:
@@ -139,7 +140,7 @@ class FieldPair(QWidget):
 
             minus_push_button = AnimatedPushButton()
             minus_push_button.setIcon(self.minus_icon)
-            minus_push_button.setIconSize(self.icon_size)
+            minus_push_button.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
             minus_push_button.setProperty('class', 'button-icon-only')
 
             def wrapper_minus(layout: QHBoxLayout) -> Callable[[], None]:
@@ -275,7 +276,6 @@ class CentralWidget(QWidget):
         self.pm = pm
         self.main_window = main_window
 
-        self.icon_size = QSize(12, 12)
         self.plus_icon = QIcon(':/plus.svg')
         self.to_delete: list[str] = []
 
@@ -370,7 +370,7 @@ class CentralWidget(QWidget):
 
         plus_push_button = AnimatedPushButton()
         plus_push_button.setIcon(self.plus_icon)
-        plus_push_button.setIconSize(self.icon_size)
+        plus_push_button.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
         plus_push_button.setProperty('class', 'button-icon-only')
 
         def wrapper_plus(field_pairs_layout: QVBoxLayout) -> Callable[[], None]:
