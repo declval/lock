@@ -356,6 +356,9 @@ class PasswordWindow(QWidget):
 
     @Slot()
     def run(self) -> None:
+        if len(self.password.text()) == 0:
+            self.password.setStyleSheet('background-color: #d61c54;')
+            return
         try:
             pm = PasswordManager(DATABASE_PATH, True, self.password.text())
         except CryptoError:
