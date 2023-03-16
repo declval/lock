@@ -2,7 +2,7 @@ from typing import Callable
 
 from PySide6.QtCore import QSize, Qt, Slot
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLayout,
+from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout,
                                QLineEdit, QMainWindow, QPushButton, QScrollArea,
                                QStatusBar, QToolBar, QVBoxLayout, QWidget)
 from nacl.exceptions import CryptoError
