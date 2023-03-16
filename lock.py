@@ -333,6 +333,7 @@ def open_main_window(pm: PasswordManager) -> None:
     main_window.layout().setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
     central_widget = CentralWidget(pm)
     main_window.setCentralWidget(central_widget)
+    main_window.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint)
     main_window.setWindowTitle(PROGRAM_NAME)
     main_window.show()
 
