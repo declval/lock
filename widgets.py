@@ -102,7 +102,7 @@ class FieldPair(QWidget):
 
         layout.addWidget(self.definition_line_edit)
 
-        copy_push_button = QPushButton()
+        copy_push_button = AnimatedPushButton('')
         copy_push_button.setIcon(self.copy_icon)
         copy_push_button.setIconSize(self.icon_size)
         copy_push_button.setProperty('class', 'button-icon-only')
@@ -121,7 +121,7 @@ class FieldPair(QWidget):
         else:
             self.definition_line_edit.setPlaceholderText('Definition')
 
-            minus_push_button = QPushButton()
+            minus_push_button = AnimatedPushButton('')
             minus_push_button.setIcon(self.minus_icon)
             minus_push_button.setIconSize(self.icon_size)
             minus_push_button.setProperty('class', 'button-icon-only')
@@ -352,7 +352,7 @@ class CentralWidget(QWidget):
 
         entry_layout.addLayout(field_pairs_layout)
 
-        plus_push_button = QPushButton()
+        plus_push_button = AnimatedPushButton('')
         plus_push_button.setIcon(self.plus_icon)
         plus_push_button.setIconSize(self.icon_size)
         plus_push_button.setProperty('class', 'button-icon-only')
