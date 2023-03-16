@@ -109,6 +109,8 @@ class PasswordManager:
                 encrypted = self.box.encrypt(plaintext.encode())
                 with open(self.database_path, 'wb') as file:
                     file.write(encrypted)
+            case _:
+                pass
 
 
 def usage() -> None:
