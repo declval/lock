@@ -269,6 +269,8 @@ class CentralWidget(QWidget):
     def delete(self, entry_group_box: QGroupBox) -> None:
         self.to_delete.append(entry_group_box.title())
         entry_group_box.deleteLater()
+        self.scroll_area.widget().updateGeometry()
+
 
     @Slot()
     def open_generate_password(self, password_line_edit: LineEdit) -> None:
