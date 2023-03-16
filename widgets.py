@@ -289,6 +289,10 @@ class CentralWidget(QWidget):
         entry_name = name_line_edit.text()
         entry_names = [entry_group_box.title() for entry_group_box in self.findChildren(QGroupBox)]
         if not entry_name or entry_name in entry_names:
+            if not entry_name:
+                self.main_window.statusBar().showMessage('Entry name is empty', STATUSBAR_TIMEOUT)
+            if entry_name in entry_names:
+                self.main_window.statusBar().showMessage(f'Entry {entry_name} already exists', STATUSBAR_TIMEOUT)
             name_line_edit.setStyleSheet('color: #c15959;')
             return
         entry_group_box = self.create_entry(entry_name, {'Password': ''})
