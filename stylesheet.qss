@@ -4,6 +4,24 @@ QWidget {
     font-family: "Roboto";
 }
 
+QCheckBox {
+    margin-left: 10px;
+    spacing: 6px;
+}
+
+QCheckBox::indicator {
+    height: 16px;
+    width: 16px;
+}
+
+QCheckBox::indicator:checked {
+    image: url(":/check_box_checked.svg");
+}
+
+QCheckBox::indicator:unchecked {
+    image: url(":/check_box_unchecked.svg");
+}
+
 QGroupBox {
     border: 1px solid #e1e1e1;
     border-radius: 6px;

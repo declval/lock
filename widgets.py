@@ -2,9 +2,10 @@ from typing import Callable
 
 from PySide6.QtCore import Property, QEasingCurve, QEvent, QPropertyAnimation, QSize, Qt, Slot
 from PySide6.QtGui import QColor, QEnterEvent, QIcon, QPalette
-from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLabel,
-                               QLineEdit, QMainWindow, QPushButton, QScrollArea,
-                               QStatusBar, QToolBar, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QGroupBox, QHBoxLayout,
+                               QLabel, QLineEdit, QMainWindow, QPushButton,
+                               QScrollArea, QStatusBar, QToolBar, QVBoxLayout,
+                               QWidget)
 from nacl.exceptions import CryptoError
 
 from helpers import layout_delete, line_edit_reset_color, password_generate, widget_center
@@ -150,6 +151,33 @@ class GeneratePassword(QWidget):
 
         layout.addWidget(self.length_line_edit)
 
+        self.choose_label = QLabel('Choose what characters a password should consist of:')
+
+        layout.addWidget(self.choose_label)
+
+        self.lowercase_checkbox = QCheckBox('Lowercase letters')
+        self.lowercase_checkbox.setChecked(True)
+        self.lowercase_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
+
+        layout.addWidget(self.lowercase_checkbox)
+
+        self.uppercase_checkbox = QCheckBox('Uppercase letters')
+        self.uppercase_checkbox.setChecked(True)
+        self.uppercase_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
+
+        layout.addWidget(self.uppercase_checkbox)
+
+        self.digits_checkbox = QCheckBox('Digits')
+        self.digits_checkbox.setChecked(True)
+        self.digits_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
+
+        layout.addWidget(self.digits_checkbox)
+
+        self.punctuation_checkbox = QCheckBox('Punctuation')
+        self.punctuation_checkbox.stateChanged.connect(lambda: self.choose_label.setStyleSheet('color: #535353;'))
+
+        layout.addWidget(self.punctuation_checkbox)
+
         generate_push_button = AnimatedPushButton('Generate')
         generate_push_button.clicked.connect(wrapper_update_password(password_line_edit))
 
@@ -159,17 +187,34 @@ class GeneratePassword(QWidget):
 
     @Slot()
     def update_password(self, password_line_edit: QLineEdit) -> None:
+        errors = False
+
         try:
             password_length = int(self.length_line_edit.text())
+            if password_length <= 0 or password_length > MAX_GENERATED_PASSWORD_LENGTH:
+                self.length_line_edit.setStyleSheet('color: #c15959;')
+                errors = True
         except ValueError:
             self.length_line_edit.setStyleSheet('color: #c15959;')
+            errors = True
+
+        if (not self.lowercase_checkbox.isChecked()
+                and not self.uppercase_checkbox.isChecked()
+                and not self.digits_checkbox.isChecked()
+                and not self.punctuation_checkbox.isChecked()):
+            self.choose_label.setStyleSheet('color: #c15959;')
+            errors = True
+
+        if errors:
             return
 
-        if password_length > MAX_GENERATED_PASSWORD_LENGTH:
-            self.length_line_edit.setStyleSheet('color: #c15959;')
-            return
-
-        password = password_generate(password_length)
+        password = password_generate(
+            password_length,
+            lowercase=self.lowercase_checkbox.isChecked(),
+            uppercase=self.uppercase_checkbox.isChecked(),
+            digits=self.digits_checkbox.isChecked(),
+            punctuation=self.punctuation_checkbox.isChecked()
+        )
         password_line_edit.setText(password)
         self.hide()
         layout_delete(self.layout())
