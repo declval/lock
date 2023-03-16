@@ -125,18 +125,31 @@ class CentralWidget(QtWidgets.QWidget):
     def __init__(self, pm: PasswordManager) -> None:
         super().__init__()
         self.pm = pm
-        contents = self.pm.read()
+        self.contents = self.pm.read()
         layout = QtWidgets.QVBoxLayout(self)
-        for entry_key, entry_value in contents.items():
+        create = QtWidgets.QHBoxLayout()
+        create_line_edit = QtWidgets.QLineEdit()
+        def wrapper_create_new_entry(create_line_edit: QtWidgets.QLineEdit) -> typing.Callable[[], None]:
+            return lambda: self.create_new_entry(create_line_edit)
+        create_line_edit.returnPressed.connect(wrapper_create_new_entry(create_line_edit))
+        create.addWidget(create_line_edit)
+        create_button = QtWidgets.QPushButton('Create')
+        create_button.clicked.connect(wrapper_create_new_entry(create_line_edit))
+        create.addWidget(create_button)
+        layout.addLayout(create)
+        for entry_key, entry_value in self.contents.items():
+            group_box = self.create_entry(entry_key, entry_value)
+            layout.addWidget(group_box)
+        self.setLayout(layout)
+
+    def create_entry(self, entry_key: str, entry_value: dict[str, str]) -> QtWidgets.QGroupBox:
             group_box = QtWidgets.QGroupBox(entry_key)
             entries_and_buttons = QtWidgets.QVBoxLayout()
             entries = QtWidgets.QVBoxLayout()
             for entry_value_name, entry_value_description in entry_value.items():
                 entry = QtWidgets.QHBoxLayout()
-
                 name = QtWidgets.QLineEdit(entry_value_name)
                 entry.addWidget(name)
-
                 description = QtWidgets.QLineEdit(entry_value_description)
                 buttons = None
                 if entry_value_name == 'Password':
@@ -154,7 +167,6 @@ class CentralWidget(QtWidgets.QWidget):
                     show.clicked.connect(wrapper_show_hide_password(description))
                     buttons.addWidget(show)
                 entry.addWidget(description)
-
                 entries.addLayout(entry)
                 if buttons is not None:
                     entries.addLayout(buttons)
@@ -175,8 +187,18 @@ class CentralWidget(QtWidgets.QWidget):
             delete.clicked.connect(wrapper_delete(group_box))
             entries_and_buttons.addWidget(delete)
             group_box.setLayout(entries_and_buttons)
-            layout.addWidget(group_box)
-        self.setLayout(layout)
+            return group_box
+
+    @QtCore.Slot()
+    def create_new_entry(self, create_line_edit: QtWidgets.QLineEdit) -> None:
+        title = create_line_edit.text()
+        if not title:
+            return
+        if title in self.contents:
+            return
+        self.contents[title] = {'Password': ''}
+        group_box = self.create_entry(title, self.contents[title])
+        self.layout().addWidget(group_box)
 
     @QtCore.Slot()
     def copy_password_to_clipboard(self, password: QtWidgets.QLineEdit) -> None:
@@ -204,11 +226,20 @@ class CentralWidget(QtWidgets.QWidget):
         line_edits = group_box.findChildren(QtWidgets.QLineEdit)
         result = {}
         for i in range(0, len(line_edits), 2):
-            name = line_edits[i].text()
-            description = line_edits[i+1].text()
-            if name and description:
-                result[name] = description
-        self.pm.update(group_box.title(), result)
+            name_line_edit = line_edits[i]
+            description_line_edit = line_edits[i+1]
+            if len(name_line_edit.text()) == 0:
+                name_line_edit.setStyleSheet('background-color: red;')
+            if len(description_line_edit.text()) == 0:
+                description_line_edit.setStyleSheet('background-color: red;')
+            if name_line_edit.text() and description_line_edit.text():
+                result[name_line_edit.text()] = description_line_edit.text()
+        if 'Password' not in result:
+            return
+        try:
+            self.pm.update(group_box.title(), result)
+        except EntryDoesNotExistError:
+            self.pm.create(group_box.title(), result)
 
     @QtCore.Slot()
     def delete(self, group_box: QtWidgets.QGroupBox) -> None:
