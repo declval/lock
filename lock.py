@@ -146,10 +146,14 @@ def main() -> None:
         password_widget.show()
         sys.exit(app.exec())
 
+    pm: PasswordManager | None = None
+
     try:
         pm = PasswordManager(DATABASE_PATH, False)
     except CryptoError:
         error('Decryption failed')
+
+    assert pm is not None
 
     match args.subcommand:
         case 'create':
