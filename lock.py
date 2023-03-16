@@ -122,7 +122,6 @@ class CentralWidget(QtWidgets.QWidget):
         self.pm = pm
         contents = self.pm.read()
         layout = QtWidgets.QVBoxLayout(self)
-        i = 0
         for entry_key, entry_value in contents.items():
             group_box = QtWidgets.QGroupBox(entry_key)
             entries = QtWidgets.QVBoxLayout()
@@ -139,14 +138,14 @@ class CentralWidget(QtWidgets.QWidget):
                     buttons = QtWidgets.QHBoxLayout()
                     buttons.addStretch()
                     copy = QtWidgets.QPushButton('Copy')
-                    def wrapper_copy_password_to_clipboard(i: int) -> None:
-                        return lambda: self.copy_password_to_clipboard(i)
-                    copy.clicked.connect(wrapper_copy_password_to_clipboard(i))
+                    def wrapper_copy_password_to_clipboard(password: QtWidgets.QLineEdit) -> None:
+                        return lambda: self.copy_password_to_clipboard(password)
+                    copy.clicked.connect(wrapper_copy_password_to_clipboard(description))
                     buttons.addWidget(copy)
                     show = QtWidgets.QPushButton('Show')
-                    def wrapper_show_hide_password(i: int) -> None:
-                        return lambda: self.show_hide_password(i)
-                    show.clicked.connect(wrapper_show_hide_password(i))
+                    def wrapper_show_hide_password(password: QtWidgets.QLineEdit) -> None:
+                        return lambda: self.show_hide_password(password)
+                    show.clicked.connect(wrapper_show_hide_password(description))
                     buttons.addWidget(show)
                 entry.addWidget(description)
 
@@ -155,28 +154,19 @@ class CentralWidget(QtWidgets.QWidget):
                     entries.addLayout(buttons)
             group_box.setLayout(entries)
             layout.addWidget(group_box)
-            i += 1
         self.setLayout(layout)
 
     @QtCore.Slot()
-    def copy_password_to_clipboard(self, i: int) -> None:
+    def copy_password_to_clipboard(self, password: QtWidgets.QLineEdit) -> None:
         clipboard = QtWidgets.QApplication.clipboard()
-        group_box = self.layout().itemAt(i).widget()
-        line_edits = group_box.findChildren(QtWidgets.QLineEdit)
-        for i in range(0, len(line_edits), 2):
-            if line_edits[i].text() == 'Password':
-                clipboard.setText(line_edits[i+1].text())
+        clipboard.setText(password.text())
 
     @QtCore.Slot()
-    def show_hide_password(self, i: int) -> None:
-        group_box = self.layout().itemAt(i).widget()
-        line_edits = group_box.findChildren(QtWidgets.QLineEdit)
-        for i in range(0, len(line_edits), 2):
-            if line_edits[i].text() == 'Password':
-                if line_edits[i+1].echoMode() == QtWidgets.QLineEdit.EchoMode.Password:
-                    line_edits[i+1].setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
-                else:
-                    line_edits[i+1].setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+    def show_hide_password(self, password: QtWidgets.QLineEdit) -> None:
+        if password.echoMode() == QtWidgets.QLineEdit.EchoMode.Password:
+            password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
+        else:
+            password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
 
 
 class PasswordWindow(QtWidgets.QWidget):
