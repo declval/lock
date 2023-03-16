@@ -12,7 +12,8 @@ import nacl.secret
 
 PROGRAM_NAME = 'lock'
 DATABASE_PATH = os.path.join(os.path.expanduser('~'), f'.{PROGRAM_NAME}')
-STYLESHEET = 'stylesheet.css'
+STYLESHEET_PATH = os.path.join(os.path.dirname(__file__), 'stylesheet.css')
+FONT_PATH = os.path.join(os.path.dirname(__file__), 'Roboto-Regular.ttf')
 WINDOW_WIDTH = 400
 WINDOW_HEIGHT = 0
 
@@ -127,8 +128,8 @@ class CentralWidget(QtWidgets.QWidget):
         super().__init__()
         self.pm = pm
         self.contents = self.pm.read()
-        self.add_icon = QtGui.QIcon('plus-solid.svg')
-        self.remove_icon = QtGui.QIcon('minus-solid.svg')
+        self.add_icon = QtGui.QIcon(os.path.join(os.path.dirname(__file__), 'plus-solid.svg'))
+        self.remove_icon = QtGui.QIcon(os.path.join(os.path.dirname(__file__), 'minus-solid.svg'))
         layout = QtWidgets.QVBoxLayout(self)
         create = QtWidgets.QHBoxLayout()
         create_line_edit = QtWidgets.QLineEdit()
@@ -353,8 +354,8 @@ def main() -> None:
 
     if args.g:
         app = QtWidgets.QApplication()
-        QtGui.QFontDatabase.addApplicationFont('Roboto-Regular.ttf')
-        with open(STYLESHEET) as file:
+        QtGui.QFontDatabase.addApplicationFont(FONT_PATH)
+        with open(STYLESHEET_PATH) as file:
             stylesheet = file.read()
         app.setStyleSheet(stylesheet)
         open_password_window()
