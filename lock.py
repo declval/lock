@@ -22,11 +22,6 @@ FONT_PATH = PROGRAM_DIR_PATH / 'Roboto-Regular.ttf'
 JSON_SEPARATORS = (',', ':')
 JSON_SORT_KEYS = True
 
-STATUSBAR_TIMEOUT = 4000
-
-WINDOW_WIDTH = 450
-WINDOW_HEIGHT = 450
-
 
 class PasswordManager:
 
