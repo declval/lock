@@ -1,3 +1,4 @@
+from pathlib import Path
 import os
 import secrets
 import unittest
@@ -12,7 +13,7 @@ DATABASE_PASSWORD = '1234'
 class TestCreate(unittest.TestCase):
 
     def setUp(self):
-        self.database_path = f'.{secrets.token_hex(DATABASE_FILENAME_LENGTH)}'
+        self.database_path = Path('.') / f'.{secrets.token_hex(DATABASE_FILENAME_LENGTH)}'
         self.pm = lock.PasswordManager(self.database_path, False, DATABASE_PASSWORD)
 
     def test_create(self):
@@ -38,7 +39,7 @@ class TestCreate(unittest.TestCase):
 class TestRead(unittest.TestCase):
 
     def setUp(self):
-        self.database_path = f'.{secrets.token_hex(DATABASE_FILENAME_LENGTH)}'
+        self.database_path = Path('.') / f'.{secrets.token_hex(DATABASE_FILENAME_LENGTH)}'
         self.pm = lock.PasswordManager(self.database_path, False, DATABASE_PASSWORD)
 
     def test_read_one_entry(self):
@@ -70,7 +71,7 @@ class TestRead(unittest.TestCase):
 class TestUpdate(unittest.TestCase):
 
     def setUp(self):
-        self.database_path = f'.{secrets.token_hex(DATABASE_FILENAME_LENGTH)}'
+        self.database_path = Path('.') / f'.{secrets.token_hex(DATABASE_FILENAME_LENGTH)}'
         self.pm = lock.PasswordManager(self.database_path, False, DATABASE_PASSWORD)
 
     def test_update(self):
@@ -92,7 +93,7 @@ class TestUpdate(unittest.TestCase):
 class TestDelete(unittest.TestCase):
 
     def setUp(self):
-        self.database_path = f'.{secrets.token_hex(DATABASE_FILENAME_LENGTH)}'
+        self.database_path = Path('.') / f'.{secrets.token_hex(DATABASE_FILENAME_LENGTH)}'
         self.pm = lock.PasswordManager(self.database_path, False, DATABASE_PASSWORD)
 
     def test_delete(self):
