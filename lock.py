@@ -7,7 +7,7 @@ import sys
 
 from PySide6.QtCore import QSize, Qt, Slot
 from PySide6.QtGui import QFontDatabase, QIcon
-from PySide6.QtWidgets import QApplication, QGroupBox, QHBoxLayout, QLayout, QLineEdit, QMainWindow, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QApplication, QGroupBox, QHBoxLayout, QLayout, QLineEdit, QMainWindow, QPushButton, QToolBar, QVBoxLayout, QWidget
 from nacl.exceptions import CryptoError
 from nacl.secret import SecretBox
 
@@ -136,6 +136,7 @@ class CentralWidget(QWidget):
         super().__init__()
         self.pm = pm
         self.contents = self.pm.read()
+        self.to_delete: list[str] = []
         self.plus_icon = QIcon(str(PROGRAM_DIR_PATH / 'plus-solid.svg'))
         self.minus_icon = QIcon(str(PROGRAM_DIR_PATH / 'minus-solid.svg'))
         layout = QVBoxLayout()
@@ -239,6 +240,7 @@ class CentralWidget(QWidget):
 
     @Slot()
     def delete(self, group_box: QGroupBox) -> None:
+        self.to_delete.append(group_box.title())
         group_box.deleteLater()
 
     @Slot()
@@ -283,6 +285,14 @@ class CentralWidget(QWidget):
             self.pm.update(group_box.title(), result)
         except EntryDoesNotExistError:
             self.pm.create(group_box.title(), result)
+
+    @Slot()
+    def save_all(self):
+        for entry in self.to_delete:
+            self.pm.delete(entry, False)
+        self.to_delete.clear()
+        for entry in self.findChildren(QGroupBox):
+            self.save(entry)
 
     @Slot()
     def show_hide_password(self, password: QLineEdit) -> None:
@@ -331,6 +341,12 @@ def open_main_window(pm: PasswordManager) -> None:
     main_window = QMainWindow()
     main_window.layout().setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
     central_widget = CentralWidget(pm)
+    save_all = QPushButton('Save all')
+    save_all.clicked.connect(central_widget.save_all)
+    toolbar = QToolBar()
+    toolbar.addWidget(save_all)
+    toolbar.setMovable(False)
+    main_window.addToolBar(Qt.ToolBarArea.BottomToolBarArea, toolbar)
     main_window.setCentralWidget(central_widget)
     main_window.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint)
     main_window.setWindowTitle(PROGRAM_NAME)
