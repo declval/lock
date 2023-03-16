@@ -137,6 +137,8 @@ class GeneratePassword(QWidget):
         self.setWindowTitle('Generate password')
 
         layout = QVBoxLayout()
+        layout.setContentsMargins(MARGIN, MARGIN, MARGIN, MARGIN)
+        layout.setSpacing(SPACING)
 
         def wrapper_update_password(password_line_edit: QLineEdit) -> Callable[[], None]:
             return lambda: self.update_password(password_line_edit)
