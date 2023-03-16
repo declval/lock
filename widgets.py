@@ -61,18 +61,15 @@ class AnimatedPushButton(QPushButton):
         return animation
 
     def enterEvent(self, event: QEnterEvent) -> None:
-        animation = self.animation(lighten=True)
-        animation.start()
+        self.animation(lighten=True).start()
         return super().enterEvent(event)
 
     def leaveEvent(self, event: QEvent) -> None:
-        animation = self.animation(lighten=False)
-        animation.start()
+        self.animation(lighten=False).start()
         return super().leaveEvent(event)
 
     def get_color(self) -> QColor:
-        palette = self.palette()
-        return palette.color(QPalette.ColorRole.Button)
+        return self.palette().color(QPalette.ColorRole.Button)
 
     def set_color(self, color: QColor) -> None:
         property = 'background-color'
