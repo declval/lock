@@ -64,14 +64,6 @@ QToolBar {
     width: 12px;
 }
 
-.spacer {
-    background-color: #ffffff;
-    border: none;
-    height: 12px;
-    padding: 8px;
-    width: 12px;
-}
-
 .info {
     border-bottom: 1px solid #e6e6e6;
     padding: 6px 0;
