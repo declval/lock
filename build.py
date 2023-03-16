@@ -1,14 +1,15 @@
+import os
 import subprocess
 
 from lock import PROGRAM_NAME
 
 subprocess.run([
     'pyinstaller',
-    '--add-data', 'Roboto-Regular.ttf;.',
-    '--add-data', 'icon.png;.',
-    '--add-data', 'minus-solid.svg;.',
-    '--add-data', 'plus-solid.svg;.',
-    '--add-data', 'stylesheet.qss;.',
+    '--add-data', f'Roboto-Regular.ttf{os.pathsep}.',
+    '--add-data', f'icon.png{os.pathsep}.',
+    '--add-data', f'minus-solid.svg{os.pathsep}.',
+    '--add-data', f'plus-solid.svg{os.pathsep}.',
+    '--add-data', f'stylesheet.qss{os.pathsep}.',
     '--hidden-import', '_cffi_backend',
     '--noconsole',
     '--onefile',
