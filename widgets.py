@@ -78,10 +78,13 @@ class AnimatedPushButton(QPushButton):
 
 
 class FieldPair(QWidget):
-    def __init__(self, name: str = '', definition: str = '', password: bool = False) -> None:
+    def __init__(self, main_window: QMainWindow, name: str = '', definition: str = '', password: bool = False) -> None:
         super().__init__()
 
+        self.main_window = main_window
+
         self.icon_size = QSize(12, 12)
+        self.copy_icon = QIcon(':/copy.svg')
         self.minus_icon = QIcon(str(lock.PROGRAM_DIR_PATH / 'minus-solid.svg'))
 
         layout = QHBoxLayout()
@@ -98,6 +101,18 @@ class FieldPair(QWidget):
         self.definition_line_edit.textChanged.connect(line_edit_reset_color(self.definition_line_edit))
 
         layout.addWidget(self.definition_line_edit)
+
+        copy_push_button = QPushButton()
+        copy_push_button.setIcon(self.copy_icon)
+        copy_push_button.setIconSize(self.icon_size)
+        copy_push_button.setProperty('class', 'button-icon-only')
+
+        def wrapper_copy_to_clipboard(definition_line_edit: QLineEdit) -> Callable[[], None]:
+            return lambda: self.copy_to_clipboard(definition_line_edit)
+
+        copy_push_button.clicked.connect(wrapper_copy_to_clipboard(self.definition_line_edit))
+
+        layout.addWidget(copy_push_button)
 
         if password:
             self.name_line_edit.setReadOnly(True)
@@ -119,6 +134,12 @@ class FieldPair(QWidget):
             layout.addWidget(minus_push_button)
 
         self.setLayout(layout)
+
+    @Slot()
+    def copy_to_clipboard(self, definition_line_edit: QLineEdit) -> None:
+        clipboard = QApplication.clipboard()
+        clipboard.setText(definition_line_edit.text())
+        self.main_window.statusBar().showMessage('Copied to clipboard', STATUSBAR_TIMEOUT)
 
     @Slot()
     def minus(self, layout: QHBoxLayout) -> None:
@@ -293,9 +314,12 @@ class CentralWidget(QWidget):
         field_pairs_layout = QVBoxLayout()
 
         for entry_value_name, entry_value_definition in entry_value.items():
-            field_pair = FieldPair(entry_value_name,
-                                   entry_value_definition,
-                                   True if entry_value_name == 'Password' else False)
+            field_pair = FieldPair(
+                self.main_window,
+                entry_value_name,
+                entry_value_definition,
+                True if entry_value_name == 'Password' else False
+            )
 
             if entry_value_name == 'Password':
                 field_pairs_layout.insertWidget(0, field_pair)
@@ -312,15 +336,6 @@ class CentralWidget(QWidget):
                 generate_push_button.clicked.connect(wrapper_open_generate_password(field_pair.definition_line_edit))
 
                 password_buttons_layout.addWidget(generate_push_button)
-
-                copy_push_button = AnimatedPushButton('Copy')
-
-                def wrapper_copy_password_to_clipboard(password_line_edit: QLineEdit) -> Callable[[], None]:
-                    return lambda: self.copy_password_to_clipboard(password_line_edit)
-
-                copy_push_button.clicked.connect(wrapper_copy_password_to_clipboard(field_pair.definition_line_edit))
-
-                password_buttons_layout.addWidget(copy_push_button)
 
                 show_push_button = AnimatedPushButton('Show')
 
@@ -375,12 +390,6 @@ class CentralWidget(QWidget):
         return entry_group_box
 
     @Slot()
-    def copy_password_to_clipboard(self, password_line_edit: QLineEdit) -> None:
-        clipboard = QApplication.clipboard()
-        clipboard.setText(password_line_edit.text())
-        self.main_window.statusBar().showMessage('Password copied to clipboard', STATUSBAR_TIMEOUT)
-
-    @Slot()
     def create_new_entry(self, name_line_edit: QLineEdit) -> None:
         entry_name = name_line_edit.text()
         entry_names = [entry_group_box.title() for entry_group_box in self.findChildren(QGroupBox)]
@@ -430,7 +439,7 @@ class CentralWidget(QWidget):
 
     @Slot()
     def plus(self, field_pairs_layout: QVBoxLayout) -> None:
-        field_pair = FieldPair()
+        field_pair = FieldPair(self.main_window)
         field_pairs_layout.addWidget(field_pair)
         self.scroll_area.widget().updateGeometry()
 

@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>check_box_checked.svg</file>
         <file>check_box_unchecked.svg</file>
+        <file>copy.svg</file>
     </qresource>
 </RCC>
