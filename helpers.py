@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import Callable
 import argparse
+import secrets
+import string
 import sys
 
 from PySide6.QtWidgets import QApplication, QLayout, QLineEdit, QWidget
@@ -45,6 +47,11 @@ def parse_arguments() -> argparse.Namespace:
     parser_delete = subparsers.add_parser('delete')
     parser_delete.add_argument('entry')
     return parser.parse_args()
+
+
+def password_generate(length: int) -> str:
+    characters = string.ascii_letters + string.digits + string.punctuation
+    return ''.join(secrets.choice(characters) for _ in range(length))
 
 
 # This function needs to be called after the show() method on a widget. Otherwise

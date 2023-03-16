@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLabel,
                                QStatusBar, QToolBar, QVBoxLayout, QWidget)
 from nacl.exceptions import CryptoError
 
-from helpers import layout_delete, line_edit_reset_color, widget_center
+from helpers import layout_delete, line_edit_reset_color, password_generate, widget_center
 import lock
 
 MARGIN = 20
@@ -129,6 +129,50 @@ class FieldPair(QWidget):
         self.updateGeometry()
 
 
+class GeneratePassword(QWidget):
+    def __init__(self, password_line_edit: QLineEdit) -> None:
+        super().__init__()
+
+        program_icon = QIcon(str(lock.PROGRAM_ICON_PATH))
+
+        self.setFixedWidth(WINDOW_WIDTH)
+        self.setWindowIcon(program_icon)
+        self.setWindowTitle('Generate password')
+
+        layout = QVBoxLayout()
+
+        self.length_line_edit = QLineEdit()
+        self.length_line_edit.setPlaceholderText('Password length')
+        self.length_line_edit.textChanged.connect(line_edit_reset_color(self.length_line_edit))
+
+        layout.addWidget(self.length_line_edit)
+
+        generate_push_button = AnimatedPushButton('Generate')
+
+        def wrapper_update_password(password_line_edit: QLineEdit) -> Callable[[], None]:
+            return lambda: self.update_password(password_line_edit)
+
+        generate_push_button.clicked.connect(wrapper_update_password(password_line_edit))
+
+        layout.addWidget(generate_push_button)
+
+        self.setLayout(layout)
+
+    @Slot()
+    def update_password(self, password_line_edit: QLineEdit) -> None:
+        try:
+            password_length = int(self.length_line_edit.text())
+        except ValueError:
+            self.length_line_edit.setStyleSheet('color: #c15959;')
+            return
+
+        password = password_generate(password_length)
+        password_line_edit.setText(password)
+        self.hide()
+        layout_delete(self.layout())
+        self.deleteLater()
+
+
 class CentralWidget(QWidget):
 
     def __init__(self, pm: lock.PasswordManager, main_window: QMainWindow) -> None:
@@ -211,6 +255,15 @@ class CentralWidget(QWidget):
                 password_buttons_layout = QHBoxLayout()
 
                 password_buttons_layout.addStretch()
+
+                generate_push_button = AnimatedPushButton('Generate')
+
+                def wrapper_open_generate_password(password_line_edit: QLineEdit) -> Callable[[], None]:
+                    return lambda: self.open_generate_password(password_line_edit)
+
+                generate_push_button.clicked.connect(wrapper_open_generate_password(field_pair.definition_line_edit))
+
+                password_buttons_layout.addWidget(generate_push_button)
 
                 copy_push_button = AnimatedPushButton('Copy')
 
@@ -325,6 +378,12 @@ class CentralWidget(QWidget):
     def delete(self, entry_group_box: QGroupBox) -> None:
         self.to_delete.append(entry_group_box.title())
         entry_group_box.deleteLater()
+
+    @Slot()
+    def open_generate_password(self, password_line_edit: QLineEdit) -> None:
+        self.generate_password = GeneratePassword(password_line_edit)
+        self.generate_password.show()
+        widget_center(self.generate_password)
 
     @Slot()
     def plus(self, field_pairs_layout: QVBoxLayout) -> None:
